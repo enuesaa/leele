@@ -8,7 +8,7 @@ tasks:
       - uv sync
       - uv export --frozen --no-dev --no-editable -o dist/requirements.txt
       - |
-        uv pip install \
+        uv pip install --no-cache \
         --no-installer-metadata \
         --no-compile-bytecode \
         --python 3.13 \

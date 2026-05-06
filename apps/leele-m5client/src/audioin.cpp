@@ -27,13 +27,13 @@ void begin() {
 bool publishAudioChunkMessage(PubSubClient& mqtt, const char *id, int seq, unsigned char* data) {
     char payload[1600];
     snprintf(payload, sizeof(payload), "{\"seq\":%d,\"msid\":\"%s\",\"data\":\"%s\",\"ain\":true}", seq, id, data);
-    return mqtt.publish("m5/audioin/chunk", payload);
+    return mqtt.publish("$aws/rules/leele_audioin_chunk/leele/d/m5cores3/audioin/chunk", payload);
 }
 
 bool publishAudioEndMessage(PubSubClient& mqtt, const char *id) {
     char end_payload[64];
     snprintf(end_payload, sizeof(end_payload), "{\"msid\":\"%s\",\"ain\":true}", id);
-    return mqtt.publish("m5/audioin/end", end_payload);
+    return mqtt.publish("$aws/rules/leele_audioin_end/leele/d/m5cores3/audioin/end", end_payload);
 }
 
 void record(PubSubClient& mqtt) {

@@ -37,7 +37,7 @@ def handle_audio_output(msid: str, aimessage: str):
         }
 
         iot.publish(
-            topic='m5/audioout/chunk',
+            topic='leele/d/m5cores3/audioout/chunk',
             qos=1,
             payload=json.dumps(payload)
         )

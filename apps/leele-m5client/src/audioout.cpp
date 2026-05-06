@@ -59,12 +59,12 @@ void begin(PubSubClient& mqtt) {
     M5.Speaker.begin();
     audioQueue = xQueueCreate(60, sizeof(AudioChunk));
     xTaskCreatePinnedToCore(audioTask, "audio", 8192, NULL, 2, NULL, 1);
-    mqtt.subscribe("m5/audioout/chunk");
+    mqtt.subscribe("leele/d/m5cores3/audioout/chunk");
 }
 
 void end(PubSubClient& mqtt) {
     M5.Speaker.end();
-    mqtt.unsubscribe("m5/audioout/chunk");
+    mqtt.unsubscribe("leele/d/m5cores3/audioout/chunk");
 }
 
 }; // namespace audioout

@@ -1,0 +1,10 @@
+eggs
+.eggs
+*.egg-info
+*.egg
+.env
+.venv
+dist
+build
+*.zip
+

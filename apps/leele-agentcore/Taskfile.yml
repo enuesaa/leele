@@ -1,0 +1,21 @@
+version: '3'
+
+tasks:
+  # see https://docs.astral.sh/uv/guides/integration/aws-lambda/#deploying-a-zip-archive
+  default:
+    cmds:
+      - rm -rf dist build *.egg-info
+      - uv export --frozen --no-dev --no-editable -o dist/requirements.txt
+      - |
+        uv pip install \
+        --no-installer-metadata \
+        --no-compile-bytecode \
+        --python 3.13 \
+        --python-platform aarch64-manylinux2014 \
+        --target dist \
+        -r dist/requirements.txt
+      - |
+        cd dist
+        zip -r ../leele-agentcore-$(date "+%Y%m%d%H%M").zip .
+        cd ..
+      - rm -rf dist build *.egg-info

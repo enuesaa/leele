@@ -4,8 +4,7 @@ tasks:
   # see https://docs.astral.sh/uv/guides/integration/aws-lambda/#deploying-a-zip-archive
   default:
     cmds:
-      - rm -rf dist build *.egg-info .venv
-      - uv sync
+      - rm -rf dist dist.zip build *.egg-info
       - uv export --frozen --no-dev --no-editable -o dist/requirements.txt
       - |
         uv pip install --no-cache \
@@ -17,6 +16,6 @@ tasks:
         -r dist/requirements.txt
       - |
         cd dist
-        zip -r ../leele-audiohandle-$(date "+%Y%m%d%H%M").zip .
+        zip -r ../dist.zip .
         cd ..
       - rm -rf dist build *.egg-info

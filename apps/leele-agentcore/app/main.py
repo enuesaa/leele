@@ -5,12 +5,15 @@ from bedrock_agentcore.memory.integrations.strands.session_manager import AgentC
 from app.mcpclient import websearch
 from app.model import load_model
 import os
+from datetime import datetime
 
+# see https://dev.classmethod.jp/articles/strands-agents-agentcore-memory-session-manager/
 MEMORY_ID = os.environ.get("MEMORY_ID", "")
+SESSION_ID = "test_" + datetime.now().strftime("%Y%m%d%H")
 
 memory_config = AgentCoreMemoryConfig(
     memory_id=MEMORY_ID,
-    session_id="test",
+    session_id=SESSION_ID,
     actor_id="me",
 )
 session_manager = AgentCoreMemorySessionManager(

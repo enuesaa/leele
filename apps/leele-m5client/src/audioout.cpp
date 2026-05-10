@@ -20,7 +20,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
     if (doc["msid"].is<const char*>() and doc["data"].is<const char*>()) {
         const char* msid = doc["msid"];
-        if (strcmp(msid, currentMsid) == 0) {
+        if (strcmp(msid, currentMsid) != 0) {
             return;
         }
         const char* b64 = doc["data"];

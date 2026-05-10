@@ -11,13 +11,18 @@ typedef struct {
 
 QueueHandle_t audioQueue;
 volatile bool isPlaying = false;
+char currentMsid[11];
 
 void callback(char* topic, byte* payload, unsigned int length) {
     JsonDocument doc;
 
     if (deserializeJson(doc, payload, length)) return;
 
-    if (doc["data"].is<const char*>()) {
+    if (doc["msid"].is<const char*>() and doc["data"].is<const char*>()) {
+        const char* msid = doc["msid"];
+        if (strcmp(msid, currentMsid) == 0) {
+            return;
+        }
         const char* b64 = doc["data"];
 
         AudioChunk chunk;
@@ -60,6 +65,10 @@ void begin(PubSubClient& mqtt) {
     audioQueue = xQueueCreate(60, sizeof(AudioChunk));
     xTaskCreatePinnedToCore(audioTask, "audio", 8192, NULL, 2, NULL, 1);
     mqtt.subscribe("leele/d/m5cores3/audioout/chunk");
+}
+
+void setMsid(const char* msid) {
+    memcpy(currentMsid, msid, 11);
 }
 
 void end(PubSubClient& mqtt) {

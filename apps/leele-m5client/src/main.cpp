@@ -46,7 +46,8 @@ void loop() {
 
     if (t.wasPressed() && btn.contains(t.x, t.y)) {
         audioout::end(mqtt);
-        audioin::begin();
+        auto msid = audioin::begin();
+        audioout::setMsid(msid);
         btn.setRecording(true);
         status.setText("Recording...");
     }

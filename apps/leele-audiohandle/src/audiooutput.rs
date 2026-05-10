@@ -109,7 +109,7 @@ pub async fn handle_audio_output(msid: &str, text: &str) -> Result<()> {
     for chunk in audio.chunks(CHUNK_SIZE) {
         let payload = json!({
             "seq": seq,
-            "session": msid,
+            "msid": msid,
             "data": base64::engine::general_purpose::STANDARD.encode(chunk),
         });
         iot.publish()

@@ -18,10 +18,11 @@ void genMsid(char *out) {
     out[10] = '\0';
 }
 
-void begin() {
+const char* begin() {
     seq = 0;
     genMsid(msid);
     M5.Mic.begin();
+    return msid;
 }
 
 bool publishAudioChunkMessage(PubSubClient& mqtt, const char *id, int seq, unsigned char* data) {

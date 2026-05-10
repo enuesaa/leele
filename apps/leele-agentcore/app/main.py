@@ -1,7 +1,21 @@
 from strands import Agent
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
+from bedrock_agentcore.memory.integrations.strands.config import AgentCoreMemoryConfig, RetrievalConfig
+from bedrock_agentcore.memory.integrations.strands.session_manager import AgentCoreMemorySessionManager
 from app.mcpclient import websearch
 from app.model import load_model
+import os
+
+MEMORY_ID = os.environ.get("MEMORY_ID", "")
+
+memory_config = AgentCoreMemoryConfig(
+    memory_id=MEMORY_ID,
+    session_id="test",
+    actor_id="me",
+)
+session_manager = AgentCoreMemorySessionManager(
+    agentcore_memory_config=memory_config
+)
 
 app = BedrockAgentCoreApp()
 
@@ -14,8 +28,9 @@ async def invoke(payload, context):
         tools = websearch_client.list_tools_sync()
         agent = Agent(
             model=load_model(),
-            system_prompt='あなたはスマートスピーカーです。ちょうど今、人間と会話してます。話をしてください。あなたの回答は人間へそのまま読み上げられます。そのため構造化せず文章で回答してください。必要があればツールを用いてください',
+            system_prompt='あなたはスマートスピーカーです。ちょうどいま人間と会話してます。概ね100文字程度で話をしてください。あなたの回答は人間へそのまま読み上げられます。そのため構造化せず文章で回答してください。必要があればツールを用いてください',
             tools=tools,
+            session_manager=session_manager,
         )
         stream = agent.stream_async(prompt)
 

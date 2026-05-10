@@ -33,19 +33,6 @@ pub async fn handle_audio_output(msid: &str, text: &str) -> Result<()> {
         StartSpeechSynthesisStreamActionStreamError,
     > = stream.into();
 
-    let mut output = polly
-        .start_speech_synthesis_stream()
-        .output_format(aws_sdk_polly::types::OutputFormat::Pcm)
-        .sample_rate("16000")
-        .language_code(aws_sdk_polly::types::LanguageCode::EnUs)
-        // .voice_id(aws_sdk_polly::types::VoiceId::Takumi)
-        .voice_id(aws_sdk_polly::types::VoiceId::Ruth)
-        // .engine(aws_sdk_polly::types::Engine::Neural)
-        .engine(aws_sdk_polly::types::Engine::Generative)
-        .action_stream(sender)
-        .send()
-        .await?;
-
     tokio::spawn(async move {
         let text_event = StartSpeechSynthesisStreamActionStream::TextEvent(
             TextEvent::builder()
@@ -59,6 +46,19 @@ pub async fn handle_audio_output(msid: &str, text: &str) -> Result<()> {
         );
         tx.send(Ok(close_event)).await.unwrap();
     });
+
+    let mut output = polly
+        .start_speech_synthesis_stream()
+        .output_format(aws_sdk_polly::types::OutputFormat::Pcm)
+        .sample_rate("16000")
+        .language_code(aws_sdk_polly::types::LanguageCode::EnUs)
+        // .voice_id(aws_sdk_polly::types::VoiceId::Takumi)
+        .voice_id(aws_sdk_polly::types::VoiceId::Ruth)
+        // .engine(aws_sdk_polly::types::Engine::Neural)
+        .engine(aws_sdk_polly::types::Engine::Generative)
+        .action_stream(sender)
+        .send()
+        .await?;
 
     while let Some(event) = output.event_stream.recv().await? {
         match event {

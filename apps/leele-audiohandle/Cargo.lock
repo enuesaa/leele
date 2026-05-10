@@ -1628,13 +1628,16 @@ dependencies = [
  "aws-sdk-polly",
  "aws-sdk-s3",
  "aws-sdk-transcribe",
+ "aws-smithy-http",
  "base64",
  "bytes",
+ "futures-util",
  "lambda_runtime",
  "reqwest",
  "serde",
  "serde_json",
  "tokio",
+ "tokio-stream",
 ]
 
 [[package]]

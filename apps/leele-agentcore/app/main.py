@@ -7,18 +7,7 @@ from app.model import load_model
 import os
 from datetime import datetime
 
-# see https://dev.classmethod.jp/articles/strands-agents-agentcore-memory-session-manager/
-MEMORY_ID = os.environ.get("MEMORY_ID", "")
-SESSION_ID = "test_" + datetime.now().strftime("%Y%m%d%H")
-
-memory_config = AgentCoreMemoryConfig(
-    memory_id=MEMORY_ID,
-    session_id=SESSION_ID,
-    actor_id="me",
-)
-session_manager = AgentCoreMemorySessionManager(
-    agentcore_memory_config=memory_config
-)
+MEMORY_ID = os.environ.get('MEMORY_ID', '')
 
 app = BedrockAgentCoreApp()
 
@@ -26,6 +15,18 @@ app = BedrockAgentCoreApp()
 async def invoke(payload, context):
     prompt = payload.get('prompt')
     app.logger.info('prompt: %s', prompt)
+
+    si = payload.get('si', '')
+    app.logger.info('si: %s', si)
+
+    memory_config = AgentCoreMemoryConfig(
+        memory_id=MEMORY_ID,
+        session_id='test_'+datetime.now().strftime("%Y%m%d")+'_'+si,
+        actor_id='me',
+    )
+    session_manager = AgentCoreMemorySessionManager(
+        agentcore_memory_config=memory_config
+    )
 
     with websearch as websearch_client:
         tools = websearch_client.list_tools_sync()

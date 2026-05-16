@@ -5,6 +5,7 @@
 #include <ArduinoJson.h>
 
 namespace audioout {
+    void setup();
     void begin(PubSubClient& mqtt);
     void setMi(const char* mi);
     void callback(char* topic, byte* payload, unsigned int length);

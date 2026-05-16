@@ -15,7 +15,9 @@ char currentTopic[128] = "leele/d/m5cores3/audioout/chunk";
 
 void callback(char* topic, byte* payload, unsigned int length) {
     JsonDocument doc;
-
+    if (strcmp(topic, currentTopic) != 0) {
+        return;
+    }
     if (deserializeJson(doc, payload, length)) {
         return;
     }
@@ -56,11 +58,14 @@ void audioTask(void* arg) {
     }
 }
 
+void setup() {
+    audioQueue = xQueueCreate(60, sizeof(AudioChunk));
+    xTaskCreatePinnedToCore(audioTask, "audio", 8192, NULL, 2, NULL, 1);
+}
+
 void begin(PubSubClient& mqtt) {
     M5.Speaker.setVolume(130);
     M5.Speaker.begin();
-    audioQueue = xQueueCreate(60, sizeof(AudioChunk));
-    xTaskCreatePinnedToCore(audioTask, "audio", 8192, NULL, 2, NULL, 1);
     mqtt.subscribe(currentTopic);
 }
 
@@ -69,7 +74,12 @@ void setMi(const char* mi) {
 }
 
 void end(PubSubClient& mqtt) {
-    M5.Speaker.end();
+    if (M5.Speaker.isRunning()) {
+        M5.Speaker.end();
+        isPlaying = false;
+        xQueueReset(audioQueue);
+        M5.delay(10);
+    }
     mqtt.unsubscribe(currentTopic);
 }
 

@@ -29,6 +29,7 @@ void setup() {
         return;
     }
     audioin::setup();
+    audioout::setup();
     mqtt.setCallback(audioout::callback);
     btn.draw();
     status.setText("Ready");

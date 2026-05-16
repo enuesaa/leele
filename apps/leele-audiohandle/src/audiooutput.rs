@@ -16,7 +16,7 @@ use tokio::time::{sleep, Duration};
 
 const CHUNK_SIZE: usize = 1024;
 
-pub async fn handle_audio_output(msid: &str, text: &str) -> Result<()> {
+pub async fn handle_audio_output(mi: &str, text: &str) -> Result<()> {
     // let awsconfvirginia = aws_config::load_defaults(aws_config::BehaviorVersion::latest()).await
     //     .to_builder()
     //     .region(Region::new("us-east-1"))
@@ -104,21 +104,18 @@ pub async fn handle_audio_output(msid: &str, text: &str) -> Result<()> {
         .await?;
 
     let audio = res.audio_stream.collect().await?.into_bytes();
-    let mut seq = 0u32;
+    let topic = format!("leele/d/m5cores3/audioout/{}/chunk", mi);
 
     for chunk in audio.chunks(CHUNK_SIZE) {
         let payload = json!({
-            "seq": seq,
-            "msid": msid,
             "data": base64::engine::general_purpose::STANDARD.encode(chunk),
         });
         iot.publish()
-            .topic("leele/d/m5cores3/audioout/chunk")
+            .topic(&topic)
             .qos(1)
             .payload(payload.to_string().into_bytes().into())
             .send()
             .await?;
-        seq += 1;
         sleep(Duration::from_millis(10)).await;
     }
     Ok(())

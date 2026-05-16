@@ -8,20 +8,20 @@ use serde_json::Value;
 use std::io::Cursor;
 use tokio::time::{sleep, Duration};
 
-pub async fn handle_audio_input(msid: &str) -> Result<String> {
+pub async fn handle_audio_input(mi: &str) -> Result<String> {
     let awsconf = aws_config::load_defaults(aws_config::BehaviorVersion::latest()).await;
     let s3 = aws_sdk_s3::Client::new(&awsconf);
     let transcribe = aws_sdk_transcribe::Client::new(&awsconf);
 
     let bucket = std::env::var("AUDIO_BUCKET")?;
-    let prefix = format!("audio/{}/", msid);
-    let wavkey = format!("audio/{}/input.wav", msid);
+    let prefix = format!("audio/{}/", mi);
+    let wavkey = format!("audio/{}/input.wav", mi);
 
     let audio = load_chunks(&s3, &bucket, &prefix).await?;
 
     upload_wav(&s3, &bucket, &wavkey, audio).await?;
 
-    let job_name = format!("audio-{}", msid);
+    let job_name = format!("audio-{}", mi);
 
     start_transcribe(&transcribe, &bucket, &wavkey, &job_name).await?;
 

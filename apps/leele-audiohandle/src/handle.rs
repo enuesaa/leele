@@ -9,7 +9,8 @@ use crate::audiooutput;
 
 #[derive(Debug, Deserialize)]
 pub struct Request {
-    msid: String,
+    si: String,
+    mi: String,
     ain: bool,
 }
 
@@ -28,12 +29,15 @@ pub async fn handler(event: LambdaEvent<Request>) -> Result<Response, Error> {
         print!("skip this event because ain is not true\n");
         return Ok(Response { ok: false });
     }
-    print!("msid={}\n", event.payload.msid);
+    print!("mi={}\n", event.payload.mi);
 
-    let prompt = audioinput::handle_audio_input(&event.payload.msid).await?;
+    let prompt = audioinput::handle_audio_input(&event.payload.mi).await?;
     print!("prompt={}\n", prompt);
 
-    let payload = serde_json::json!({"prompt": prompt}).to_string();
+    let payload = serde_json::json!({
+        "si": event.payload.si,
+        "prompt": prompt,
+    }).to_string();
 
     let res = agentcore
         .invoke_agent_runtime()
@@ -48,7 +52,7 @@ pub async fn handler(event: LambdaEvent<Request>) -> Result<Response, Error> {
         let text = String::from_utf8(chunk.to_vec())?;
         let text = text.strip_prefix("data:").unwrap_or(&text).trim();
         print!("chunk={}\n", text);
-        audiooutput::handle_audio_output(&event.payload.msid, &text).await?;
+        audiooutput::handle_audio_output(&event.payload.mi, &text).await?;
     }
     Ok(Response { ok: true })
 }

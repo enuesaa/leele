@@ -35,16 +35,32 @@ pub async fn handler(event: LambdaEvent<Request>) -> Result<Response, Error> {
 
     let payload = serde_json::json!({"prompt": prompt}).to_string();
 
+    // let res = agentcore
+    //     .invoke_agent_runtime()
+    //     .agent_runtime_arn(agent_runtime_arn)
+    //     .payload(payload.into_bytes().into())
+    //     .send()
+    //     .await?;
+    // let resbody = res.response.collect().await?;
+    // let aimessage = String::from_utf8(resbody.into_bytes().to_vec())?;
+    // print!("aimessage={}\n", aimessage);
+
+    // audiooutput::handle_audio_output(&event.payload.msid, &aimessage).await?;
+    // Ok(Response { ok: true })
+
     let res = agentcore
         .invoke_agent_runtime()
         .agent_runtime_arn(agent_runtime_arn)
         .payload(payload.into_bytes().into())
         .send()
         .await?;
-    let resbody = res.response.collect().await?;
-    let aimessage = String::from_utf8(resbody.into_bytes().to_vec())?;
-    print!("aimessage={}\n", aimessage);
+    let mut stream = res.response;
 
-    audiooutput::handle_audio_output(&event.payload.msid, &aimessage).await?;
+    while let Some(chunk) = stream.next().await {
+        let chunk = chunk?;
+        let text = String::from_utf8(chunk.to_vec())?;
+        print!("chunk={}\n", text);
+        audiooutput::handle_audio_output(&event.payload.msid, &text).await?;
+    }
     Ok(Response { ok: true })
 }

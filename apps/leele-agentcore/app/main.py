@@ -21,7 +21,7 @@ async def invoke(payload, context):
 
     memory_config = AgentCoreMemoryConfig(
         memory_id=MEMORY_ID,
-        session_id='test_'+datetime.now().strftime("%Y%m%d")+'_'+si,
+        session_id='test_'+datetime.now().strftime('%Y%m%d')+'_'+si,
         actor_id='me',
     )
     session_manager = AgentCoreMemorySessionManager(
@@ -37,16 +37,25 @@ async def invoke(payload, context):
             session_manager=session_manager,
         )
         stream = agent.stream_async(prompt)
+        buffer = ''
 
         async for event in stream:
             if 'data' in event and isinstance(event['data'], str):
-                app.logger.info('data: %s', event['data'])
-            # if 'toolUse' in event:
-            #   pass
-            if 'result' in event:
-                result = str(event['result']).replace('\n', '').replace('#', '')
-                app.logger.info('result: %s', result)
-                yield result
+                chunk = event['data']
+                app.logger.info('chunk: %s', chunk)
+                buffer += chunk
+                while '。' in buffer:
+                    idx = buffer.index('。') + 1
+                    sentence = buffer[:idx]
+                    buffer = buffer[idx:]
+
+                    sentence = sentence.replace('\n', '').replace('#', '')
+                    app.logger.info('yield: %s', sentence)
+                    yield sentence
+
+        # 最後に残ったワード
+        if buffer.strip():
+            yield buffer.strip()
 
 if __name__ == '__main__':
     app.run()

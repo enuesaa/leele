@@ -1631,6 +1631,7 @@ dependencies = [
  "aws-smithy-http",
  "base64",
  "bytes",
+ "futures-util",
  "lambda_runtime",
  "reqwest",
  "serde",

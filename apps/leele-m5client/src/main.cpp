@@ -60,10 +60,8 @@ void loop() {
         status.setText("Published");
         audioin::end(mqtt);
         btn.setRecording(false);
-
         M5.delay(2000);
-
         audioout::begin(mqtt);
-        status.setText("Listening..");
+        status.setText("Thinking..");
     }
 }

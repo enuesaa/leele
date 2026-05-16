@@ -5,7 +5,6 @@ from bedrock_agentcore.memory.integrations.strands.session_manager import AgentC
 from app.mcpclient import websearch
 from app.model import load_model
 import os
-from datetime import datetime
 
 MEMORY_ID = os.environ.get('MEMORY_ID', '')
 
@@ -14,20 +13,12 @@ app = BedrockAgentCoreApp()
 @app.entrypoint
 async def invoke(payload, context):
     prompt = payload.get('prompt')
-    app.logger.info('prompt: %s', prompt)
+    si = payload.get('si', 'sinotspecified')
+    app.logger.info('prompt=%s, si=%s', prompt, si)
 
-    si = payload.get('si', '')
-    app.logger.info('si: %s', si)
-
-    memory_config = AgentCoreMemoryConfig(
-        memory_id=MEMORY_ID,
-        session_id='test_'+datetime.now().strftime('%Y%m%d')+'_'+si,
-        actor_id='me',
-    )
     session_manager = AgentCoreMemorySessionManager(
-        agentcore_memory_config=memory_config
+        agentcore_memory_config=AgentCoreMemoryConfig(memory_id=MEMORY_ID, session_id=si, actor_id='me')
     )
-
     with websearch as websearch_client:
         tools = websearch_client.list_tools_sync()
         agent = Agent(
@@ -41,19 +32,15 @@ async def invoke(payload, context):
 
         async for event in stream:
             if 'data' in event and isinstance(event['data'], str):
-                chunk = event['data']
-                app.logger.info('chunk: %s', chunk)
-                buffer += chunk
+                buffer += event['data']
                 while '。' in buffer:
                     idx = buffer.index('。') + 1
-                    sentence = buffer[:idx]
+                    sentence = buffer[:idx].replace('\n', '').replace('#', '')
                     buffer = buffer[idx:]
-
-                    sentence = sentence.replace('\n', '').replace('#', '')
                     app.logger.info('yield: %s', sentence)
                     yield sentence
 
-        # 最後に残ったワード
+        # last words
         if buffer.strip():
             yield buffer.strip()
 

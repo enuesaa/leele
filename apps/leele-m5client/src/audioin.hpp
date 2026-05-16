@@ -5,6 +5,7 @@
 #include <ArduinoJson.h>
 
 namespace audioin {
+    void setup();
     const char* begin();
     void record(PubSubClient& mqtt);
     void end(PubSubClient& mqtt);

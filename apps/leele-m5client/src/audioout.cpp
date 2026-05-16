@@ -11,18 +11,15 @@ typedef struct {
 
 QueueHandle_t audioQueue;
 volatile bool isPlaying = false;
-char currentMsid[11];
+char currentTopic[128] = "leele/d/m5cores3/audioout/chunk";
 
 void callback(char* topic, byte* payload, unsigned int length) {
     JsonDocument doc;
 
-    if (deserializeJson(doc, payload, length)) return;
-
-    if (doc["msid"].is<const char*>() and doc["data"].is<const char*>()) {
-        const char* msid = doc["msid"];
-        if (strcmp(msid, currentMsid) != 0) {
-            return;
-        }
+    if (deserializeJson(doc, payload, length)) {
+        return;
+    }
+    if (doc["data"].is<const char*>()) {
         const char* b64 = doc["data"];
 
         AudioChunk chunk;
@@ -64,16 +61,16 @@ void begin(PubSubClient& mqtt) {
     M5.Speaker.begin();
     audioQueue = xQueueCreate(60, sizeof(AudioChunk));
     xTaskCreatePinnedToCore(audioTask, "audio", 8192, NULL, 2, NULL, 1);
-    mqtt.subscribe("leele/d/m5cores3/audioout/chunk");
+    mqtt.subscribe(currentTopic);
 }
 
-void setMsid(const char* msid) {
-    memcpy(currentMsid, msid, 11);
+void setMi(const char* mi) {
+    snprintf(currentTopic, sizeof(currentTopic), "leele/d/m5cores3/audioout/%s/chunk", mi);
 }
 
 void end(PubSubClient& mqtt) {
     M5.Speaker.end();
-    mqtt.unsubscribe("leele/d/m5cores3/audioout/chunk");
+    mqtt.unsubscribe(currentTopic);
 }
 
 }; // namespace audioout

@@ -8,11 +8,9 @@
 #include <WiFiClientSecure.h>
 #include <PubSubClient.h>
 
-// ===== UI =====
 ui::Button btn(100, 80, 120, 60, "OK");
 ui::StatusArea status(20, 160, 280, 60);
 
-// ===== MQTT =====
 WiFiClientSecure net;
 PubSubClient mqtt(net);
 
@@ -30,6 +28,7 @@ void setup() {
         status.setText("MQTT failed");
         return;
     }
+    audioin::setup();
     mqtt.setCallback(audioout::callback);
     btn.draw();
     status.setText("Ready");
@@ -46,8 +45,8 @@ void loop() {
 
     if (t.wasPressed() && btn.contains(t.x, t.y)) {
         audioout::end(mqtt);
-        auto msid = audioin::begin();
-        audioout::setMsid(msid);
+        auto mi = audioin::begin();
+        audioout::setMi(mi);
         btn.setRecording(true);
         status.setText("Recording...");
     }

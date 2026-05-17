@@ -5,6 +5,7 @@ use lambda_runtime::{Error, LambdaEvent};
 use serde::{Deserialize, Serialize};
 
 use crate::audioinput;
+use crate::audioinputs;
 use crate::audiooutput;
 
 #[derive(Debug, Deserialize)]
@@ -31,7 +32,7 @@ pub async fn handler(event: LambdaEvent<Request>) -> Result<(), Error> {
     }
     print!("mi={}\n", event.payload.mi);
 
-    let prompt = audioinput::handle_audio_input(&event.payload.mi).await?;
+    let prompt = audioinputs::handle_audio_input(&event.payload.mi).await?;
     print!("prompt={}\n", prompt);
 
     let reqbody = AgentcoreRequestBody {

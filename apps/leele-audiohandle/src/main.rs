@@ -1,5 +1,6 @@
 use lambda_runtime::{run, service_fn, tracing, Error};
 mod audioinput;
+mod audioinputs;
 mod audiooutput;
 mod handle;
 

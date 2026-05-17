@@ -1,4 +1,4 @@
 from strands.models import BedrockModel
 
 def load_model() -> BedrockModel:
-    return BedrockModel(model_id='global.amazon.nova-2-lite-v1:0')
+    return BedrockModel(model_id='jp.anthropic.claude-haiku-4-5-20251001-v1:0')

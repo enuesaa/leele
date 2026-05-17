@@ -2,7 +2,7 @@ from strands import Agent
 from strands.models import BedrockModel
 from strands.types.content import SystemContentBlock
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
-from bedrock_agentcore.memory.integrations.strands.config import AgentCoreMemoryConfig, RetrievalConfig
+from bedrock_agentcore.memory.integrations.strands.config import AgentCoreMemoryConfig
 from bedrock_agentcore.memory.integrations.strands.session_manager import AgentCoreMemorySessionManager
 from app.mcpclient import websearch
 import os

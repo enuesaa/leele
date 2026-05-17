@@ -16,6 +16,9 @@ async def invoke(payload, context):
     prompt = payload.get('prompt')
     si = payload.get('si', 'sinotspecified')
     app.logger.info('prompt=%s, si=%s', prompt, si)
+    if prompt == "":
+        yield "Unknown Prompt"
+        return
 
     session_manager = AgentCoreMemorySessionManager(
         agentcore_memory_config=AgentCoreMemoryConfig(memory_id=MEMORY_ID, session_id=si, actor_id='me')

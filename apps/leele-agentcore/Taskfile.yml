@@ -10,7 +10,7 @@ tasks:
         uv pip install --no-cache \
         --no-installer-metadata \
         --no-compile-bytecode \
-        --python 3.13 \
+        --python 3.14 \
         --python-platform aarch64-manylinux2014 \
         --target dist \
         -r dist/requirements.txt

@@ -359,6 +359,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "aws-sdk-transcribestreaming"
+version = "1.103.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9e3025be53b063917cc86846bbe0c235542fb44ad38163b85de400ced3cda234"
+dependencies = [
+ "aws-credential-types",
+ "aws-runtime",
+ "aws-sigv4",
+ "aws-smithy-async",
+ "aws-smithy-eventstream",
+ "aws-smithy-http",
+ "aws-smithy-json",
+ "aws-smithy-observability",
+ "aws-smithy-runtime",
+ "aws-smithy-runtime-api",
+ "aws-smithy-types",
+ "aws-types",
+ "bytes",
+ "fastrand",
+ "http 0.2.12",
+ "http 1.4.0",
+ "http-body-util",
+ "regex-lite",
+ "tracing",
+]
+
+[[package]]
 name = "aws-sigv4"
 version = "1.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1628,6 +1655,7 @@ dependencies = [
  "aws-sdk-polly",
  "aws-sdk-s3",
  "aws-sdk-transcribe",
+ "aws-sdk-transcribestreaming",
  "aws-smithy-http",
  "base64",
  "bytes",

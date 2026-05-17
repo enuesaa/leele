@@ -2,6 +2,7 @@ use anyhow::{anyhow, Result};
 use aws_config;
 use aws_sdk_s3;
 use aws_sdk_transcribe;
+// use aws_sdk_transcribestreaming;
 use base64;
 use base64::Engine;
 use serde_json::Value;
@@ -124,6 +125,19 @@ async fn start_transcribe(
         .await?;
     Ok(())
 }
+
+// async fn start_transcribe_streaming() -> Result<()> {
+//     let awsconf = aws_config::load_defaults(aws_config::BehaviorVersion::latest()).await;
+//     let transcribes = aws_sdk_transcribestreaming::Client::new(&awsconf);
+//     transcribes
+//         .start_stream_transcription()
+//         .language_code(aws_sdk_transcribestreaming::types::LanguageCode::JaJp)
+//         .media_encoding( aws_sdk_transcribestreaming::types::MediaEncoding::Pcm)
+//         .audio_stream(input_stream.into())
+//         .send()
+//         .await?;
+//     Ok(())
+// }
 
 async fn wait_for_transcribe(
     transcribe: &aws_sdk_transcribe::Client,

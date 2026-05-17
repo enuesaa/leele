@@ -4,12 +4,12 @@ use aws_sdk_s3;
 use aws_sdk_transcribestreaming;
 use aws_sdk_transcribestreaming::primitives::Blob;
 use aws_sdk_transcribestreaming::primitives::event_stream::EventStreamSender;
-use aws_sdk_transcribestreaming::types::{
-    AudioEvent, AudioStream, LanguageCode, MediaEncoding, TranscriptResultStream, error::AudioStreamError,
-};
+use aws_sdk_transcribestreaming::types::{AudioEvent, AudioStream, LanguageCode, MediaEncoding, TranscriptResultStream};
+use aws_sdk_transcribestreaming::types::error::AudioStreamError;
 use base64::Engine;
-use futures::stream;
 use serde_json::Value;
+use tokio::sync::mpsc::channel;
+use tokio_stream::wrappers::ReceiverStream;
 
 pub async fn handle_audio_input(mi: &str) -> Result<String> {
     let awsconf = aws_config::load_defaults(aws_config::BehaviorVersion::latest()).await;
@@ -19,55 +19,63 @@ pub async fn handle_audio_input(mi: &str) -> Result<String> {
     let bucket = std::env::var("AUDIO_BUCKET")?;
     let prefix = format!("audio/{}/", mi);
 
-    let events = load_chunks(&s3, &bucket, &prefix).await?;
-
-    transcribe_streaming(&transcribe, events).await
+    transcribe_streaming(&transcribe, &s3, &bucket, &prefix).await
 }
 
-async fn load_chunks(s3: &aws_sdk_s3::Client, bucket: &str, prefix: &str) -> Result<Vec<Result<AudioStream, AudioStreamError>>> {
+async fn transcribe_streaming(transcribe: &aws_sdk_transcribestreaming::Client, s3: &aws_sdk_s3::Client, bucket: &str, prefix: &str) -> Result<String> {
     let res = s3
         .list_objects_v2()
         .bucket(bucket)
         .prefix(prefix)
         .send()
         .await?;
-    let mut list: Vec<(u32, AudioStream)> = vec![];
+    let mut keys: Vec<(u32, String)> = vec![];
 
     for obj in res.contents() {
         let key = obj.key().unwrap_or_default();
-
         if !key.ends_with(".json") {
             continue;
         }
-
-        let body = s3
-            .get_object()
-            .bucket(bucket)
-            .key(key)
-            .send()
-            .await?
-            .body
-            .collect()
-            .await?
-            .into_bytes();
-        let json: Value = serde_json::from_slice(&body)?;
-        let seq = json["seq"].as_u64().unwrap_or(0) as u32;
-        let data = json["data"]
-            .as_str()
-            .ok_or_else(|| anyhow!("missing data"))?;
-        let pcm = base64::engine::general_purpose::STANDARD.decode(data)?;
-        let event = AudioEvent::builder()
-            .audio_chunk(Blob::new(pcm))
-            .build();
-        list.push((seq, AudioStream::AudioEvent(event)));
+        let filename = key.rsplit('/').next().unwrap_or_default();
+        let seq = filename
+            .strip_suffix(".json")
+            .unwrap_or("0")
+            .parse::<u32>()
+            .unwrap_or(0);
+        keys.push((seq, key.to_string()));
     }
-    list.sort_by_key(|x| x.0);
-    let chunks = list.into_iter().map(|(_, e)| Ok(e)).collect();
-    Ok(chunks)
-}
+    keys.sort_by_key(|x| x.0);
 
-async fn transcribe_streaming(transcribe: &aws_sdk_transcribestreaming::Client, events: Vec<Result<AudioStream, AudioStreamError>>) -> Result<String> {
-    let audio_stream = EventStreamSender::from(stream::iter(events));
+    let s3c = s3.clone();
+    let bucket = bucket.to_string();
+    let (tx, rx) = channel::<Result<AudioStream, AudioStreamError>>(8);
+
+    tokio::spawn(async move {
+        for (_, key) in keys {
+            let r: Result<()> = async {
+                let obj = s3c
+                    .get_object()
+                    .bucket(&bucket)
+                    .key(&key)
+                    .send()
+                    .await?;
+                let body = obj.body.collect().await?.into_bytes();
+                let json: Value = serde_json::from_slice(&body)?;
+                let data = json["data"].as_str().ok_or_else(|| anyhow!("missing data"))?;
+                let pcm = base64::engine::general_purpose::STANDARD.decode(data)?;
+                let event = AudioEvent::builder()
+                    .audio_chunk(Blob::new(pcm))
+                    .build();
+                tx.send(Ok(AudioStream::AudioEvent(event))).await.ok();
+                Ok(())
+            }.await;
+            if r.is_err() {
+                break;
+            }
+        }
+    });
+    let stream = ReceiverStream::new(rx);
+    let audio_stream = EventStreamSender::from(stream);
 
     let resp = transcribe
         .start_stream_transcription()

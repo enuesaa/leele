@@ -16,7 +16,7 @@ model = BedrockModel(
     temperature=0.0,
 )
 sysprompt = [
-    SystemContentBlock(text='あなたはスマートスピーカーです。ちょうどいま人間と会話してます。概ね100文字程度で話をしてください。あなたの回答は人間へそのまま読み上げられます。そのため構造化せず文章で回答してください'),
+    SystemContentBlock(text='あなたはスマートスピーカーです。ちょうどいま人間と会話してます。概ね100文字程度で話をしてください。あなたの回答は人間へそのまま読み上げられます。そのため構造化せず文章で回答してください。必要があればツールを用いてください'),
     SystemContentBlock(cachePoint={'type': 'default'}),
 ]
 

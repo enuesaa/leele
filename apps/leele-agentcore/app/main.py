@@ -1,4 +1,5 @@
 from strands import Agent
+from strands.types.content import SystemContentBlock
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from bedrock_agentcore.memory.integrations.strands.config import AgentCoreMemoryConfig, RetrievalConfig
 from bedrock_agentcore.memory.integrations.strands.session_manager import AgentCoreMemorySessionManager
@@ -23,9 +24,12 @@ async def invoke(payload, context):
         tools = websearch_client.list_tools_sync()
         agent = Agent(
             model=load_model(),
-            system_prompt='あなたはスマートスピーカーです。ちょうどいま人間と会話してます。概ね100文字程度で話をしてください。あなたの回答は人間へそのまま読み上げられます。そのため構造化せず文章で回答してください。必要があればツールを用いてください',
             tools=tools,
             session_manager=session_manager,
+            system_prompt=[
+                SystemContentBlock(text='あなたはスマートスピーカーです。ちょうどいま人間と会話してます。概ね100文字程度で話をしてください。あなたの回答は人間へそのまま読み上げられます。そのため構造化せず文章で回答してください'),
+                SystemContentBlock(cachePoint={'type': 'default'}),
+            ],
         )
         stream = agent.stream_async(prompt)
         buffer = ''

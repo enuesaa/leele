@@ -1,180 +1,111 @@
 use anyhow::{anyhow, Result};
 use aws_config;
 use aws_sdk_s3;
-use aws_sdk_transcribe;
-// use aws_sdk_transcribestreaming;
-use base64;
+use aws_sdk_transcribestreaming;
+use aws_sdk_transcribestreaming::primitives::Blob;
+use aws_sdk_transcribestreaming::primitives::event_stream::EventStreamSender;
+use aws_sdk_transcribestreaming::types::{AudioEvent, AudioStream, LanguageCode, MediaEncoding, TranscriptResultStream};
+use aws_sdk_transcribestreaming::types::error::AudioStreamError;
 use base64::Engine;
 use serde_json::Value;
-use std::io::Cursor;
-use tokio::time::{sleep, Duration};
+use tokio::sync::mpsc::channel;
+use tokio_stream::wrappers::ReceiverStream;
 
 pub async fn handle_audio_input(mi: &str) -> Result<String> {
     let awsconf = aws_config::load_defaults(aws_config::BehaviorVersion::latest()).await;
     let s3 = aws_sdk_s3::Client::new(&awsconf);
-    let transcribe = aws_sdk_transcribe::Client::new(&awsconf);
+    let transcribe = aws_sdk_transcribestreaming::Client::new(&awsconf);
 
     let bucket = std::env::var("AUDIO_BUCKET")?;
     let prefix = format!("audio/{}/", mi);
-    let wavkey = format!("audio/{}/input.wav", mi);
 
-    let audio = load_chunks(&s3, &bucket, &prefix).await?;
-
-    upload_wav(&s3, &bucket, &wavkey, audio).await?;
-
-    let job_name = format!("audio-{}", mi);
-
-    start_transcribe(&transcribe, &bucket, &wavkey, &job_name).await?;
-
-    let uri = wait_for_transcribe(&transcribe, &job_name).await?;
-
-    fetch_transcript(&uri).await
+    transcribe_streaming(&transcribe, &s3, &bucket, &prefix).await
 }
 
-async fn load_chunks(s3: &aws_sdk_s3::Client, bucket: &str, prefix: &str) -> Result<Vec<u8>> {
+async fn transcribe_streaming(transcribe: &aws_sdk_transcribestreaming::Client, s3: &aws_sdk_s3::Client, bucket: &str, prefix: &str) -> Result<String> {
     let res = s3
         .list_objects_v2()
         .bucket(bucket)
         .prefix(prefix)
         .send()
         .await?;
-    let mut chunks: Vec<(u32, Vec<u8>)> = vec![];
+    let mut keys: Vec<(u32, String)> = vec![];
 
     for obj in res.contents() {
         let key = obj.key().unwrap_or_default();
         if !key.ends_with(".json") {
             continue;
         }
-        let body = s3
-            .get_object()
-            .bucket(bucket)
-            .key(key)
-            .send()
-            .await?
-            .body
-            .collect()
-            .await?
-            .into_bytes();
-        let json: Value = serde_json::from_slice(&body)?;
-        let seq = json["seq"].as_u64().unwrap_or(0) as u32;
-        let data = json["data"]
-            .as_str()
-            .ok_or_else(|| anyhow!("missing data"))?;
-        chunks.push((seq, base64::engine::general_purpose::STANDARD.decode(data)?));
+        let filename = key.rsplit('/').next().unwrap_or_default();
+        let seq = filename
+            .strip_suffix(".json")
+            .unwrap_or("0")
+            .parse::<u32>()
+            .unwrap_or(0);
+        keys.push((seq, key.to_string()));
     }
-    chunks.sort_by_key(|x| x.0);
+    keys.sort_by_key(|x| x.0);
 
-    let mut out = vec![];
-    for (_, chunk) in chunks {
-        out.extend(chunk);
-    }
-    Ok(out)
-}
+    let s3c = s3.clone();
+    let bucket = bucket.to_string();
+    let (tx, rx) = channel::<Result<AudioStream, AudioStreamError>>(8);
 
-async fn upload_wav(s3: &aws_sdk_s3::Client, bucket: &str, key: &str, pcm: Vec<u8>) -> Result<()> {
-    let wav = pcm_to_wav(pcm);
-    s3.put_object()
-        .bucket(bucket)
-        .key(key)
-        .content_type("audio/wav")
-        .body(wav.into())
-        .send()
-        .await?;
-    Ok(())
-}
-
-fn pcm_to_wav(pcm: Vec<u8>) -> Vec<u8> {
-    let mut wav = Cursor::new(Vec::new());
-
-    let len = pcm.len() as u32;
-
-    wav.get_mut().extend(b"RIFF");
-    wav.get_mut().extend(&(36 + len).to_le_bytes());
-    wav.get_mut().extend(b"WAVEfmt ");
-    wav.get_mut().extend(&16u32.to_le_bytes());
-    wav.get_mut().extend(&1u16.to_le_bytes());
-    wav.get_mut().extend(&1u16.to_le_bytes());
-    wav.get_mut().extend(&16000u32.to_le_bytes());
-    wav.get_mut().extend(&(16000u32 * 2).to_le_bytes());
-    wav.get_mut().extend(&2u16.to_le_bytes());
-    wav.get_mut().extend(&16u16.to_le_bytes());
-    wav.get_mut().extend(b"data");
-    wav.get_mut().extend(&len.to_le_bytes());
-    wav.get_mut().extend(&pcm);
-
-    wav.into_inner()
-}
-
-async fn start_transcribe(
-    transcribe: &aws_sdk_transcribe::Client,
-    bucket: &str,
-    key: &str,
-    job_name: &str,
-) -> Result<()> {
-    transcribe
-        .start_transcription_job()
-        .transcription_job_name(job_name)
-        .media(
-            aws_sdk_transcribe::types::Media::builder()
-                .media_file_uri(format!("s3://{}/{}", bucket, key))
-                .build(),
-        )
-        .media_format(aws_sdk_transcribe::types::MediaFormat::Wav)
-        .language_code(aws_sdk_transcribe::types::LanguageCode::JaJp)
-        .send()
-        .await?;
-    Ok(())
-}
-
-// async fn start_transcribe_streaming() -> Result<()> {
-//     let awsconf = aws_config::load_defaults(aws_config::BehaviorVersion::latest()).await;
-//     let transcribes = aws_sdk_transcribestreaming::Client::new(&awsconf);
-//     transcribes
-//         .start_stream_transcription()
-//         .language_code(aws_sdk_transcribestreaming::types::LanguageCode::JaJp)
-//         .media_encoding( aws_sdk_transcribestreaming::types::MediaEncoding::Pcm)
-//         .audio_stream(input_stream.into())
-//         .send()
-//         .await?;
-//     Ok(())
-// }
-
-async fn wait_for_transcribe(
-    transcribe: &aws_sdk_transcribe::Client,
-    job_name: &str,
-) -> Result<String> {
-    loop {
-        let res = transcribe
-            .get_transcription_job()
-            .transcription_job_name(job_name)
-            .send()
-            .await?;
-
-        let job = res.transcription_job().unwrap();
-
-        match job.transcription_job_status() {
-            Some(aws_sdk_transcribe::types::TranscriptionJobStatus::Completed) => {
-                return Ok(job
-                    .transcript()
-                    .unwrap()
-                    .transcript_file_uri()
-                    .unwrap()
-                    .to_string())
-            }
-            Some(aws_sdk_transcribe::types::TranscriptionJobStatus::Failed) => {
-                return Err(anyhow!("transcribe failed"));
-            }
-            _ => {
-                sleep(Duration::from_secs(2)).await;
+    tokio::spawn(async move {
+        for (_, key) in keys {
+            let r: Result<()> = async {
+                let obj = s3c
+                    .get_object()
+                    .bucket(&bucket)
+                    .key(&key)
+                    .send()
+                    .await?;
+                let body = obj.body.collect().await?.into_bytes();
+                let json: Value = serde_json::from_slice(&body)?;
+                let data = json["data"].as_str().ok_or_else(|| anyhow!("missing data"))?;
+                let pcm = base64::engine::general_purpose::STANDARD.decode(data)?;
+                let event = AudioEvent::builder()
+                    .audio_chunk(Blob::new(pcm))
+                    .build();
+                tx.send(Ok(AudioStream::AudioEvent(event))).await.ok();
+                Ok(())
+            }.await;
+            if r.is_err() {
+                break;
             }
         }
-    }
-}
+    });
+    let stream = ReceiverStream::new(rx);
+    let audio_stream = EventStreamSender::from(stream);
 
-async fn fetch_transcript(uri: &str) -> Result<String> {
-    let json: Value = reqwest::get(uri).await?.json().await?;
-    Ok(json["results"]["transcripts"][0]["transcript"]
-        .as_str()
-        .unwrap_or_default()
-        .to_string())
+    let resp = transcribe
+        .start_stream_transcription()
+        .language_code(LanguageCode::JaJp)
+        .media_sample_rate_hertz(16000)
+        .media_encoding(MediaEncoding::Pcm)
+        .audio_stream(audio_stream)
+        .send()
+        .await?;
+    let mut transcript_stream = resp.transcript_result_stream;
+    let mut result = String::new();
+
+    while let Some(event) = transcript_stream.recv().await? {
+        match event {
+            TranscriptResultStream::TranscriptEvent(ev) => {
+                if let Some(transcript) = ev.transcript() {
+                    for res in transcript.results() {
+                        if res.is_partial() {
+                            continue;
+                        }
+                        for alt in res.alternatives() {
+                            if let Some(text) = alt.transcript() {
+                                result.push_str(text);
+                            }
+                        }
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+    Ok(result)
 }

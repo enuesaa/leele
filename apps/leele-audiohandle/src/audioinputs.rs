@@ -5,7 +5,7 @@ use aws_sdk_transcribestreaming;
 use aws_sdk_transcribestreaming::primitives::Blob;
 use aws_sdk_transcribestreaming::primitives::event_stream::EventStreamSender;
 use aws_sdk_transcribestreaming::types::{
-    AudioEvent, AudioStream, LanguageCode, MediaEncoding, TranscriptResultStream,
+    AudioEvent, AudioStream, LanguageCode, MediaEncoding, TranscriptResultStream, error::AudioStreamError,
 };
 use base64::Engine;
 use futures::stream;
@@ -19,20 +19,19 @@ pub async fn handle_audio_input(mi: &str) -> Result<String> {
     let bucket = std::env::var("AUDIO_BUCKET")?;
     let prefix = format!("audio/{}/", mi);
 
-    let audio = load_chunks(&s3, &bucket, &prefix).await?;
+    let events = load_chunks(&s3, &bucket, &prefix).await?;
 
-    transcribe_streaming(&transcribe, audio).await
+    transcribe_streaming(&transcribe, events).await
 }
 
-async fn load_chunks(s3: &aws_sdk_s3::Client, bucket: &str, prefix: &str) -> Result<Vec<u8>> {
+async fn load_chunks(s3: &aws_sdk_s3::Client, bucket: &str, prefix: &str) -> Result<Vec<Result<AudioStream, AudioStreamError>>> {
     let res = s3
         .list_objects_v2()
         .bucket(bucket)
         .prefix(prefix)
         .send()
         .await?;
-
-    let mut chunks: Vec<(u32, Vec<u8>)> = vec![];
+    let mut list: Vec<(u32, AudioStream)> = vec![];
 
     for obj in res.contents() {
         let key = obj.key().unwrap_or_default();
@@ -57,30 +56,20 @@ async fn load_chunks(s3: &aws_sdk_s3::Client, bucket: &str, prefix: &str) -> Res
             .as_str()
             .ok_or_else(|| anyhow!("missing data"))?;
         let pcm = base64::engine::general_purpose::STANDARD.decode(data)?;
-        chunks.push((seq, pcm));
+        let event = AudioEvent::builder()
+            .audio_chunk(Blob::new(pcm))
+            .build();
+        list.push((seq, AudioStream::AudioEvent(event)));
     }
-    chunks.sort_by_key(|x| x.0);
-
-    let mut out = vec![];
-    for (_, chunk) in chunks {
-        out.extend(chunk);
-    }
-    Ok(out)
+    list.sort_by_key(|x| x.0);
+    let chunks = list.into_iter().map(|(_, e)| Ok(e)).collect();
+    Ok(chunks)
 }
 
-async fn transcribe_streaming(client: &aws_sdk_transcribestreaming::Client, pcm: Vec<u8>) -> Result<String> {
-    let events: Vec<_> = pcm
-        .chunks(3200)
-        .map(|chunk| {
-            let e = AudioEvent::builder()
-                .audio_chunk(Blob::new(chunk.to_vec()))
-                .build();
-            Ok(AudioStream::AudioEvent(e))
-        })
-        .collect();
+async fn transcribe_streaming(transcribe: &aws_sdk_transcribestreaming::Client, events: Vec<Result<AudioStream, AudioStreamError>>) -> Result<String> {
     let audio_stream = EventStreamSender::from(stream::iter(events));
 
-    let resp = client
+    let resp = transcribe
         .start_stream_transcription()
         .language_code(LanguageCode::JaJp)
         .media_sample_rate_hertz(16000)

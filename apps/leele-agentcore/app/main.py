@@ -1,10 +1,10 @@
 from strands import Agent
+from strands.models import BedrockModel
 from strands.types.content import SystemContentBlock
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from bedrock_agentcore.memory.integrations.strands.config import AgentCoreMemoryConfig, RetrievalConfig
 from bedrock_agentcore.memory.integrations.strands.session_manager import AgentCoreMemorySessionManager
 from app.mcpclient import websearch
-from app.model import load_model
 import os
 
 MEMORY_ID = os.environ.get('MEMORY_ID', '')
@@ -23,13 +23,17 @@ async def invoke(payload, context):
     with websearch as websearch_client:
         tools = websearch_client.list_tools_sync()
         agent = Agent(
-            model=load_model(),
-            tools=tools,
-            session_manager=session_manager,
+            model=BedrockModel(
+                model_id='jp.anthropic.claude-haiku-4-5-20251001-v1:0',
+                max_tokens=300,
+                temperature=0.0,
+            ),
             system_prompt=[
                 SystemContentBlock(text='あなたはスマートスピーカーです。ちょうどいま人間と会話してます。概ね100文字程度で話をしてください。あなたの回答は人間へそのまま読み上げられます。そのため構造化せず文章で回答してください'),
                 SystemContentBlock(cachePoint={'type': 'default'}),
             ],
+            tools=tools,
+            session_manager=session_manager,
         )
         stream = agent.stream_async(prompt)
         buffer = ''

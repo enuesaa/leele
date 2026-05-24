@@ -22,6 +22,25 @@ function Home() {
         },
       },
     })
+
+    const res = await fetch(import.meta.env.VITE_GRAPHQL_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: idToken!,
+      },
+      body: JSON.stringify({
+        query: `
+          query {
+            notes {
+              id
+            }
+          }
+        `,
+      }),
+    })
+    const resbody = await res.json()
+    console.log(resbody)
   }
 
   return (

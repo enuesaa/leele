@@ -35,10 +35,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
       <Auth0Provider
-        domain=""
-        clientId=""
+        domain={import.meta.env.VITE_AUTH0_DOMAIN}
+        clientId={import.meta.env.VITE_AUTH0_CLIENT_ID}
         authorizationParams={{
-          redirect_uri: 'http://localhost:3000',
+          redirect_uri: import.meta.env.VITE_AUTH0_REDIRECT_URL,
         }}
       >
         {children}

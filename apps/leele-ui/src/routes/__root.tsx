@@ -1,4 +1,5 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
+import { Auth0Provider } from '@auth0/auth0-react';
 
 import appCss from '../styles.css?url'
 
@@ -33,7 +34,15 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
+      <Auth0Provider
+        domain=""
+        clientId=""
+        authorizationParams={{
+          redirect_uri: 'http://localhost:3000',
+        }}
+      >
         {children}
+      </Auth0Provider>
         <Scripts />
       </body>
     </html>

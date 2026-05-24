@@ -1,3 +1,5 @@
-onlyBuiltDependencies: 
+allowBuilds:
+  browser-tabs-lock: true
+onlyBuiltDependencies:
   - esbuild
   - lightningcss

@@ -5,11 +5,15 @@ import tailwindcss from '@tailwindcss/vite'
 import { nitro } from 'nitro/vite'
 
 const config = defineConfig({
-  resolve: { tsconfigPaths: true },
+  resolve: {
+    tsconfigPaths: true,
+  },
   plugins: [
     nitro({
       preset: 'aws_amplify',
-      awsAmplify: { runtime: 'nodejs24.x' },
+      awsAmplify: {
+        runtime: 'nodejs24.x',
+      },
     }),
     tailwindcss(),
     tanstackStart(),

@@ -1,6 +1,5 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
-import { Auth0Provider } from '@auth0/auth0-react';
-
+import { Auth0Provider } from '@auth0/auth0-react'
 import appCss from '../styles.css?url'
 
 export const Route = createRootRoute({
@@ -14,7 +13,7 @@ export const Route = createRootRoute({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'TanStack Start Starter',
+        title: 'App',
       },
     ],
     links: [
@@ -34,15 +33,15 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-      <Auth0Provider
-        domain={import.meta.env.VITE_AUTH0_DOMAIN}
-        clientId={import.meta.env.VITE_AUTH0_CLIENT_ID}
-        authorizationParams={{
-          redirect_uri: import.meta.env.VITE_AUTH0_REDIRECT_URL,
-        }}
-      >
-        {children}
-      </Auth0Provider>
+        <Auth0Provider
+          domain={import.meta.env.VITE_AUTH0_DOMAIN}
+          clientId={import.meta.env.VITE_AUTH0_CLIENT_ID}
+          authorizationParams={{
+            redirect_uri: import.meta.env.VITE_AUTH0_REDIRECT_URL,
+          }}
+        >
+          {children}
+        </Auth0Provider>
         <Scripts />
       </body>
     </html>

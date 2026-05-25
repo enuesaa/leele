@@ -11,8 +11,8 @@ function Home() {
     e.preventDefault()
     const claims = await getIdTokenClaims()
     const idToken = claims?.__raw
-    console.log(idToken)
     if (idToken === undefined) {
+      console.error('id token is undefined')
       return;
     }
 

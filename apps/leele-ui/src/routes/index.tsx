@@ -1,11 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth0 } from '@auth0/auth0-react'
 import { Client, cacheExchange, fetchExchange } from 'urql'
 
 export const Route = createFileRoute('/')({ component: Home })
 
 function Home() {
-  const { getIdTokenClaims } = useAuth0();
+  const { getIdTokenClaims } = useAuth0()
 
   const handleClick: React.MouseEventHandler<HTMLButtonElement> = async (e) => {
     e.preventDefault()
@@ -13,7 +13,7 @@ function Home() {
     const idToken = claims?.__raw
     if (idToken === undefined) {
       console.error('id token is undefined')
-      return;
+      return
     }
 
     const client = new Client({
@@ -25,18 +25,23 @@ function Home() {
         },
       },
     })
-    const res = await client.query(`
+    const res = await client
+      .query(
+        `
       query {
         notes {
           id
         }
       }
-    `, {}).toPromise()
+    `,
+        {},
+      )
+      .toPromise()
     console.log(res)
   }
 
   return (
-    <div className="p-8">
+    <div className='p-8'>
       <button onClick={handleClick}>b</button>
     </div>
   )

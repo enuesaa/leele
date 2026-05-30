@@ -1,48 +1,30 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useAuth0 } from '@auth0/auth0-react'
-import { Client, cacheExchange, fetchExchange } from 'urql'
+import { gql, useQuery } from 'urql'
 
 export const Route = createFileRoute('/chats/')({ component: Home })
 
-function Home() {
-  const { getIdTokenClaims } = useAuth0()
-
-  const handleClick: React.MouseEventHandler<HTMLButtonElement> = async (e) => {
-    e.preventDefault()
-    const claims = await getIdTokenClaims()
-    const idToken = claims?.__raw
-    if (idToken === undefined) {
-      console.error('id token is undefined')
-      return
+const NotesQuery = gql`
+  query {
+    notes {
+      id
     }
-
-    const client = new Client({
-      url: import.meta.env.VITE_GRAPHQL_ENDPOINT,
-      exchanges: [cacheExchange, fetchExchange],
-      fetchOptions: {
-        headers: {
-          Authorization: idToken,
-        },
-      },
-    })
-    const res = await client
-      .query(
-        `
-      query {
-        notes {
-          id
-        }
-      }
-    `,
-        {},
-      )
-      .toPromise()
-    console.log(res)
   }
+`;
+
+function Home () {
+  const [result, reexecuteQuery] = useQuery({
+    query: NotesQuery,
+  })
+  const { data, fetching, error } = result;
+
+  if (fetching) return <p>Loading...</p>;
+  if (error) return <p>Oh no... {error.message}</p>;
 
   return (
-    <div className='p-8'>
-      <button onClick={handleClick}>fetch</button>
-    </div>
-  )
-}
+    <ul>
+      {data.notes.map(note => (
+        <li key={note.id}>{note.id}</li>
+      ))}
+    </ul>
+  );
+};

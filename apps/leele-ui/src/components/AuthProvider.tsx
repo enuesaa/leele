@@ -8,6 +8,8 @@ export function AuthProvider({ children }: React.PropsWithChildren) {
       authorizationParams={{
         redirect_uri: import.meta.env.VITE_AUTH0_REDIRECT_URL,
       }}
+      useRefreshTokens
+      cacheLocation={'localstorage'}
     >
       {children}
     </Auth0Provider>

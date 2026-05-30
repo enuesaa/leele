@@ -15,6 +15,13 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+    "plugins": [ 
+      {
+        "name": "gql.tada/ts-plugin",
+        "schema": "./src/gqlschema.graphql",
+        "tadaOutputLocation": "./src/gql.d.ts"
+      }
+    ]
   }
 }

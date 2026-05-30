@@ -1,6 +1,6 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
-import { Auth0Provider } from '@auth0/auth0-react'
 import appCss from '../styles.css?url'
+import { AuthProvider } from '../components/AuthProvider'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -26,22 +26,16 @@ export const Route = createRootRoute({
   shellComponent: RootDocument,
 })
 
-function RootDocument({ children }: { children: React.ReactNode }) {
+function RootDocument({ children }: React.PropsWithChildren) {
   return (
-    <html lang='en'>
+    <html lang='ja'>
       <head>
         <HeadContent />
       </head>
       <body>
-        <Auth0Provider
-          domain={import.meta.env.VITE_AUTH0_DOMAIN}
-          clientId={import.meta.env.VITE_AUTH0_CLIENT_ID}
-          authorizationParams={{
-            redirect_uri: import.meta.env.VITE_AUTH0_REDIRECT_URL,
-          }}
-        >
+        <AuthProvider>
           {children}
-        </Auth0Provider>
+        </AuthProvider>
         <Scripts />
       </body>
     </html>

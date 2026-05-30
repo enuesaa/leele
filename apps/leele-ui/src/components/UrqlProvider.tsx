@@ -11,7 +11,6 @@ export function UrqlProvider({ children }: React.PropsWithChildren) {
       cacheExchange,
       authExchange(async (utils) => {
         let token: string|undefined = undefined
-
         return {
           addAuthToOperation(operation) {
             if (!token) {

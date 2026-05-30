@@ -2,6 +2,7 @@ import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import appCss from '../styles.css?url'
 import { AuthProvider } from '../components/AuthProvider'
 import { UrqlProvider } from '../components/UrqlProvider'
+import { Header } from '../components/Header'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -21,10 +22,11 @@ function RootDocument({ children }: React.PropsWithChildren) {
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body className='min-h-full bg-[#ccc] text-[#1a1a1a] antialiased'>
         <AuthProvider>
           <UrqlProvider>
-            {children}
+            <Header />
+            <main className='mx-auto max-w-5xl px-6 py-10'>{children}</main>
           </UrqlProvider>
         </AuthProvider>
         <Scripts />

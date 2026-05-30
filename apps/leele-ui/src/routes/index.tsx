@@ -1,15 +1,13 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useAuth0 } from '@auth0/auth0-react'
+import { Link, createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/')({ component: Home })
 
 function Home() {
-  const { loginWithRedirect, getIdTokenClaims } = useAuth0()
-
   return (
-    <div className='p-8'>
-      <button onClick={() => loginWithRedirect()}>Login</button>
-      <button onClick={async () => console.log(await getIdTokenClaims())}>check</button>
+    <div className='py-12'>
+      <Link to='/chats' className='text-[#1a1a1a] underline underline-offset-4 hover:opacity-70'>
+        チャット
+      </Link>
     </div>
   )
 }

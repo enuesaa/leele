@@ -3,6 +3,7 @@ import appCss from '../styles.css?url'
 import { AuthProvider } from '../components/AuthProvider'
 import { UrqlProvider } from '../components/UrqlProvider'
 import { Header } from '../components/Header'
+import { NotFound } from '../components/NotFound'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -14,6 +15,7 @@ export const Route = createRootRoute({
     links: [{ rel: 'stylesheet', href: appCss }],
   }),
   shellComponent: RootDocument,
+  notFoundComponent: NotFound,
 })
 
 function RootDocument({ children }: React.PropsWithChildren) {

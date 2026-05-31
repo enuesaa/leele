@@ -4,6 +4,7 @@
 export type introspection_types = {
     'Boolean': unknown;
     'ID': unknown;
+    'Mutation': { kind: 'OBJECT'; name: 'Mutation'; fields: { 'createNote': { name: 'createNote'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'ID'; ofType: null; }; } }; }; };
     'Note': { kind: 'OBJECT'; name: 'Note'; fields: { 'id': { name: 'id'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'ID'; ofType: null; }; } }; 'message': { name: 'message'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'String'; ofType: null; }; } }; }; };
     'Query': { kind: 'OBJECT'; name: 'Query'; fields: { 'note': { name: 'note'; type: { kind: 'OBJECT'; name: 'Note'; ofType: null; } }; 'notes': { name: 'notes'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'LIST'; name: never; ofType: { kind: 'NON_NULL'; name: never; ofType: { kind: 'OBJECT'; name: 'Note'; ofType: null; }; }; }; } }; }; };
     'String': unknown;
@@ -20,7 +21,7 @@ export type introspection_types = {
 export type introspection = {
   name: never;
   query: 'Query';
-  mutation: never;
+  mutation: 'Mutation';
   subscription: never;
   types: introspection_types;
 };

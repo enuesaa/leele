@@ -5,7 +5,6 @@
   "scripts": {
     "dev": "vite dev --port 3000",
     "build": "vite build",
-    "preview": "vite preview",
     "gengql": "gql-tada generate output",
     "format": "biome format --write"
   },

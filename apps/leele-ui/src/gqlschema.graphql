@@ -1,5 +1,10 @@
 schema {
   query: Query
+  mutation: Mutation
+}
+
+type Mutation {
+  createNote(message: String!): ID!
 }
 
 type Note {

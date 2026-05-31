@@ -1,115 +1,74 @@
+import { useCallback, useMemo, useRef } from 'react'
 import { Client, Provider, cacheExchange, fetchExchange, subscriptionExchange } from 'urql'
 import { authExchange } from '@urql/exchange-auth'
 import { useAuth0 } from '@auth0/auth0-react'
-import { createClient as createWsClient } from 'graphql-ws'
+import { AppSyncRealtimeClient } from '../lib/appsync-realtime'
 
 const apiHost = new URL(import.meta.env.VITE_GRAPHQL_ENDPOINT).hostname
 
-function createAppSyncWebSocket(getToken: () => Promise<string | undefined>) {
-  return class extends WebSocket {
-    constructor(url: string | URL, _protocols?: string | string[]) {
-      super(url, 'graphql-ws')
-
-      const originalSend = this.send.bind(this)
-      this.send = (data: string) => {
-        const parsed = JSON.parse(data)
-        if (parsed.type === 'subscribe') {
-          getToken().then((token) => {
-            originalSend(JSON.stringify({
-              id: parsed.id,
-              payload: {
-                data: JSON.stringify({
-                  query: parsed.payload.query,
-                  // variables: parsed.payload.variables ?? {},
-                }),
-                extensions: {
-                  authorization: {
-                    Authorization: token,
-                    host: apiHost,
-                  },
-                },
-              },
-              type: 'start',
-            }))
-          })
-        } else if (parsed.type === 'complete') {
-          originalSend(JSON.stringify({ ...parsed, type: 'stop' }))
-        } else {
-          originalSend(data)
-        }
-      }
-
-      this.addEventListener('message', (event) => {
-        const data = JSON.parse(event.data)
-        if (data.type === 'data') {
-          Object.defineProperty(event, 'data', {
-            value: JSON.stringify({ ...data, type: 'next' }),
-          })
-        }
-      })
-    }
-  }
-}
-
 export function UrqlProvider({ children }: React.PropsWithChildren) {
-  const { getIdTokenClaims } = useAuth0()
+  const auth0 = useAuth0()
+  // Keep a ref so the memoised client always reads the latest auth0 instance.
+  const auth0Ref = useRef(auth0)
+  auth0Ref.current = auth0
 
-  const getToken = async () => {
-    const claims = await getIdTokenClaims()
+  const getToken = useCallback(async () => {
+    const claims = await auth0Ref.current.getIdTokenClaims()
     return claims?.__raw
-  }
+  }, [])
 
-  const wsClient = createWsClient({
-    url: async () => {
-      const token = await getToken()
-      const header = btoa(JSON.stringify({ Authorization: token, host: apiHost }))
-      const payload = btoa(JSON.stringify({}))
-      return `${import.meta.env.VITE_GRAPHQL_REALTIME_ENDPOINT}?header=${header}&payload=${payload}`
-    },
-    webSocketImpl: createAppSyncWebSocket(getToken),
-  })
+  const client = useMemo(() => {
+    const realtime = new AppSyncRealtimeClient({
+      url: import.meta.env.VITE_GRAPHQL_REALTIME_ENDPOINT,
+      apiHost,
+      getToken,
+    })
 
-  const client = new Client({
-    url: import.meta.env.VITE_GRAPHQL_ENDPOINT,
-    exchanges: [
-      cacheExchange,
-      authExchange(async (utils) => {
-        let token: string|undefined = undefined
-        return {
-          addAuthToOperation(operation) {
-            if (!token) {
-              return operation
-            }
-            return utils.appendHeaders(operation, {
-              Authorization: `Bearer ${token}`,
-            })
-          },
-          willAuthError() {
-            return !token
-          },
-          didAuthError(error) {
-            return error.graphQLErrors.some(
-              (e) => e.extensions?.code === 'UNAUTHENTICATED',
-            )
-          },
-          async refreshAuth() {
-            token = await getToken()
-          },
-        }
-      }),
-      fetchExchange,
-      subscriptionExchange({
-        forwardSubscription(request) {
-          const input = { ...request, query: request.query ?? '' }
+    return new Client({
+      url: import.meta.env.VITE_GRAPHQL_ENDPOINT,
+      exchanges: [
+        cacheExchange,
+        authExchange(async (utils) => {
+          let token: string | undefined = undefined
           return {
-            subscribe(sink) {
-              return { unsubscribe: wsClient.subscribe(input, sink) }
+            addAuthToOperation(operation) {
+              if (!token) {
+                return operation
+              }
+              return utils.appendHeaders(operation, {
+                Authorization: `Bearer ${token}`,
+              })
+            },
+            willAuthError() {
+              return !token
+            },
+            didAuthError(error) {
+              return error.graphQLErrors.some(
+                (e) => e.extensions?.code === 'UNAUTHENTICATED',
+              )
+            },
+            async refreshAuth() {
+              token = await getToken()
             },
           }
-        },
-      }),
-    ],
-  })
+        }),
+        fetchExchange,
+        subscriptionExchange({
+          forwardSubscription(request) {
+            return {
+              subscribe(sink) {
+                const unsubscribe = realtime.subscribe(
+                  { query: request.query ?? '', variables: request.variables },
+                  sink,
+                )
+                return { unsubscribe }
+              },
+            }
+          },
+        }),
+      ],
+    })
+  }, [getToken])
 
   return (
     <Provider value={client}>

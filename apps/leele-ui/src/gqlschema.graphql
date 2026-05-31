@@ -1,18 +1,23 @@
-schema {
-  query: Query
-  mutation: Mutation
+type Note {
+	id: ID!
+	message: String!
 }
 
 type Mutation {
-  createNote(message: String!): ID!
-}
-
-type Note {
-  id: ID!
-  message: String!
+	createNote(message: String!): ID!
 }
 
 type Query {
-  note(id: ID!): Note
-  notes: [Note!]!
+	notes: [Note!]!
+	note(id: ID!): Note
+}
+
+type Subscription {
+	noteCreated: Note!
+}
+
+schema {
+	query: Query
+	mutation: Mutation
+	subscription: Subscription
 }

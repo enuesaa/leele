@@ -1,7 +1,7 @@
-import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { useMutation, useQuery } from 'urql'
+import { useMutation, useQuery, useSubscription } from 'urql'
 import { graphql } from 'gql.tada'
+import { useEffect } from 'react'
 
 export const Route = createFileRoute('/chats/')({ component: Home })
 
@@ -16,15 +16,41 @@ const NotesQuery = graphql(`
 
 const CreateNoteMutation = graphql(`
   mutation ($message: String!) {
-    createNote(message: $message)
+    createNote(message: $message) {
+      id
+      message
+    }
   }
 `)
 
+const NoteCreatedSubscription = graphql(`
+  subscription {
+    noteCreated {
+      id
+      message
+    }
+  }
+`)
+
+type Note = { id: string; message: string }
+
 function Home () {
-  const [result, reexecuteQuery] = useQuery({
+  const [result] = useQuery({
     query: NotesQuery,
   })
   const { data, fetching, error } = result;
+
+  const [subscriptionResult] = useSubscription(
+    { query: NoteCreatedSubscription },
+    (notes: Note[] = [], response) => {
+      const note = response.noteCreated;
+      if (notes.some(n => n.id === note.id)) return notes;
+      return [...notes, note];
+    },
+  );
+  useEffect(() => {
+    console.log(subscriptionResult.data)
+  }, [subscriptionResult.data])
 
   const [createResult, createNote] = useMutation(CreateNoteMutation);
 

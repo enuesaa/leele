@@ -1,23 +1,23 @@
 type Note {
-	id: ID!
-	message: String!
+  id: ID!
+  message: String!
 }
 
 type Mutation {
-	createNote(message: String!): ID!
+  createNote(message: String!): ID!
 }
 
 type Query {
-	notes: [Note!]!
-	note(id: ID!): Note
+  notes: [Note!]!
+  note(id: ID!): Note
 }
 
 type Subscription {
-	noteCreated: Note!
+  noteCreated: Note!
 }
 
 schema {
-	query: Query
-	mutation: Mutation
-	subscription: Subscription
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
 }

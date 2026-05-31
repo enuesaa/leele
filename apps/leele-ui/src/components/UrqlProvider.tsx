@@ -1,25 +1,73 @@
 import { Client, Provider, cacheExchange, fetchExchange, subscriptionExchange } from 'urql'
 import { authExchange } from '@urql/exchange-auth'
 import { useAuth0 } from '@auth0/auth0-react'
-import { createClient as createWSClient } from 'graphql-ws'
-import { SubscriptionClient } from 'subscriptions-transport-ws';
+import { createClient as createWsClient } from 'graphql-ws'
 
-const subscriptionClient = new SubscriptionClient(import.meta.env.VITE_GRAPHQL_REALTIME_ENDPOINT, {
-  // reconnect: true,
-})
+const apiHost = new URL(import.meta.env.VITE_GRAPHQL_ENDPOINT).hostname
+
+function createAppSyncWebSocket(getToken: () => Promise<string | undefined>) {
+  return class extends WebSocket {
+    constructor(url: string | URL, _protocols?: string | string[]) {
+      super(url, 'graphql-ws')
+
+      const originalSend = this.send.bind(this)
+      this.send = (data: string) => {
+        const parsed = JSON.parse(data)
+        if (parsed.type === 'subscribe') {
+          getToken().then((token) => {
+            originalSend(JSON.stringify({
+              id: parsed.id,
+              payload: {
+                data: JSON.stringify({
+                  query: parsed.payload.query,
+                  // variables: parsed.payload.variables ?? {},
+                }),
+                extensions: {
+                  authorization: {
+                    Authorization: token,
+                    host: apiHost,
+                  },
+                },
+              },
+              type: 'start',
+            }))
+          })
+        } else if (parsed.type === 'complete') {
+          originalSend(JSON.stringify({ ...parsed, type: 'stop' }))
+        } else {
+          originalSend(data)
+        }
+      }
+
+      this.addEventListener('message', (event) => {
+        const data = JSON.parse(event.data)
+        if (data.type === 'data') {
+          Object.defineProperty(event, 'data', {
+            value: JSON.stringify({ ...data, type: 'next' }),
+          })
+        }
+      })
+    }
+  }
+}
 
 export function UrqlProvider({ children }: React.PropsWithChildren) {
   const { getIdTokenClaims } = useAuth0()
 
-  // const wsClient = createWSClient({
-  //   url: import.meta.env.VITE_GRAPHQL_REALTIME_ENDPOINT,
-  //   connectionParams: async () => {
-  //     const claims = await getIdTokenClaims()
-  //     const token = claims?.__raw
-  //     return token ? { Authorization: `Bearer ${token}` } : {}
-  //   },
-  // })
+  const getToken = async () => {
+    const claims = await getIdTokenClaims()
+    return claims?.__raw
+  }
 
+  const wsClient = createWsClient({
+    url: async () => {
+      const token = await getToken()
+      const header = btoa(JSON.stringify({ Authorization: token, host: apiHost }))
+      const payload = btoa(JSON.stringify({}))
+      return `${import.meta.env.VITE_GRAPHQL_REALTIME_ENDPOINT}?header=${header}&payload=${payload}`
+    },
+    webSocketImpl: createAppSyncWebSocket(getToken),
+  })
 
   const client = new Client({
     url: import.meta.env.VITE_GRAPHQL_ENDPOINT,
@@ -45,29 +93,24 @@ export function UrqlProvider({ children }: React.PropsWithChildren) {
             )
           },
           async refreshAuth() {
-            const claims = await getIdTokenClaims()
-            token = claims?.__raw
+            token = await getToken()
           },
         }
       }),
       fetchExchange,
-      // subscriptionExchange({
-      //   forwardSubscription(request) {
-      //     const input = { ...request, query: request.query || '' }
-      //     return {
-      //       subscribe(sink) {
-      //         const unsubscribe = wsClient.subscribe(input, sink)
-      //         return { unsubscribe }
-      //       },
-      //     }
-      //   },
-      // }),
       subscriptionExchange({
-        forwardSubscription: request => subscriptionClient.request(request),
+        forwardSubscription(request) {
+          const input = { ...request, query: request.query ?? '' }
+          return {
+            subscribe(sink) {
+              return { unsubscribe: wsClient.subscribe(input, sink) }
+            },
+          }
+        },
       }),
     ],
   })
-  
+
   return (
     <Provider value={client}>
       {children}

@@ -3,7 +3,7 @@ import { useMutation, useQuery, useSubscription } from 'urql'
 import { graphql } from 'gql.tada'
 import { useEffect } from 'react'
 
-export const Route = createFileRoute('/chats/')({ component: Home })
+export const Route = createFileRoute('/chats/')({ component: Page })
 
 const NotesQuery = graphql(`
   query {
@@ -34,7 +34,7 @@ const NoteCreatedSubscription = graphql(`
 
 type Note = { id: string; message: string }
 
-function Home() {
+function Page() {
   const [result] = useQuery({
     query: NotesQuery,
   })

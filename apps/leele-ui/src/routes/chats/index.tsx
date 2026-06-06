@@ -1,33 +1,44 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useSubscription } from 'urql'
-import { graphql } from 'gql.tada'
+import { graphql, type ResultOf } from 'gql.tada'
+import { useEffect, useState } from 'react'
 
 export const Route = createFileRoute('/chats/')({ component: Page })
 
 const NoteCreatedSubscription = graphql(`
   subscription {
-    noteCreated {
+    onNoteCreated {
       id
       message
     }
   }
 `)
 
-type Note = { id: string; message: string }
+type Note = NonNullable<ResultOf<typeof NoteCreatedSubscription>['onNoteCreated']>
 
 function Page() {
-  const [{ data, fetching, error }] = useSubscription({ query: NoteCreatedSubscription }, (notes: (Note|null)[] = [], response) => {
-    notes.push(response.noteCreated)
-    return notes.filter(n => n !== null)
+  const [notes, setNotes] = useState<Note[]>([])
+  const [{ data, fetching, error }] = useSubscription({
+    query: NoteCreatedSubscription,
   })
+  useEffect(() => {
+    if (data === undefined || data.onNoteCreated === null) {
+      return;
+    }
+    const note = data.onNoteCreated;
+    setNotes((prev) => [...prev, note])
+  }, [data])
 
-  if (fetching) return <p>Loading...</p>
-  if (error) return <p>err... {error.message}</p>
-
+  if (fetching) {
+    return <p>Connecting...</p>
+  }
+  if (error !== undefined) {
+    return <p>err... {error.message}</p>
+  }
   return (
     <ul>
-      {data?.map((note) => (
-        <li key={note?.id}>{note?.message}</li>
+      {notes.map((note) => (
+        <li key={note.id}>{note.message}</li>
       ))}
     </ul>
   )

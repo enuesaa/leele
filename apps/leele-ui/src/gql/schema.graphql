@@ -4,20 +4,20 @@ schema {
   subscription: Subscription
 }
 
+type Query {
+  notes: [Note!]!
+  note(id: ID!): Note
+}
+
 type Mutation {
   createNote(message: String!): Note!
+}
+
+type Subscription {
+  onNoteCreated: Note @aws_subscribe(mutations: ["createNote"])
 }
 
 type Note {
   id: ID!
   message: String!
-}
-
-type Query {
-  note(id: ID!): Note
-  notes: [Note!]!
-}
-
-type Subscription {
-  noteCreated: Note @aws_subscribe(mutations : ["createNote"])
 }

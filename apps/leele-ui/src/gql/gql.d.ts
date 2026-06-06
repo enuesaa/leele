@@ -8,7 +8,7 @@ export type introspection_types = {
     'Note': { kind: 'OBJECT'; name: 'Note'; fields: { 'id': { name: 'id'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'ID'; ofType: null; }; } }; 'message': { name: 'message'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'SCALAR'; name: 'String'; ofType: null; }; } }; }; };
     'Query': { kind: 'OBJECT'; name: 'Query'; fields: { 'note': { name: 'note'; type: { kind: 'OBJECT'; name: 'Note'; ofType: null; } }; 'notes': { name: 'notes'; type: { kind: 'NON_NULL'; name: never; ofType: { kind: 'LIST'; name: never; ofType: { kind: 'NON_NULL'; name: never; ofType: { kind: 'OBJECT'; name: 'Note'; ofType: null; }; }; }; } }; }; };
     'String': unknown;
-    'Subscription': { kind: 'OBJECT'; name: 'Subscription'; fields: { 'noteCreated': { name: 'noteCreated'; type: { kind: 'OBJECT'; name: 'Note'; ofType: null; } }; }; };
+    'Subscription': { kind: 'OBJECT'; name: 'Subscription'; fields: { 'onNoteCreated': { name: 'onNoteCreated'; type: { kind: 'OBJECT'; name: 'Note'; ofType: null; } }; }; };
 };
 
 /** An IntrospectionQuery representation of your schema.

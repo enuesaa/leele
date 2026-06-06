@@ -1,9 +1,9 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import appCss from '../styles.css?url'
-import { AuthProvider } from '../components/AuthProvider'
+import { AuthProvider } from '../auth/Provider'
 import { GqlProvider } from '../gql/Provider'
-import { Header } from '../components/Header'
-import { NotFound } from '../components/NotFound'
+import { Header } from '../components/common/Header'
+import { NotFound } from '../components/common/NotFound'
 
 export const Route = createRootRoute({
   head: () => ({

@@ -1,0 +1,23 @@
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+type Mutation {
+  createNote(message: String!): Note!
+}
+
+type Note {
+  id: ID!
+  message: String!
+}
+
+type Query {
+  note(id: ID!): Note
+  notes: [Note!]!
+}
+
+type Subscription {
+  noteCreated: Note @aws_subscribe(mutations : ["createNote"])
+}

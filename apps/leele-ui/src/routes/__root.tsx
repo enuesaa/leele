@@ -1,7 +1,7 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import appCss from '../styles.css?url'
 import { AuthProvider } from '../components/AuthProvider'
-import { UrqlProvider } from '../components/UrqlProvider'
+import { GqlProvider } from '../gql/Provider'
 import { Header } from '../components/Header'
 import { NotFound } from '../components/NotFound'
 
@@ -26,10 +26,10 @@ function RootDocument({ children }: React.PropsWithChildren) {
       </head>
       <body className='min-h-full bg-[#ccc] text-[#1a1a1a] antialiased'>
         <AuthProvider>
-          <UrqlProvider>
+          <GqlProvider>
             <Header />
             <main className='mx-auto max-w-5xl px-6 py-10'>{children}</main>
-          </UrqlProvider>
+          </GqlProvider>
         </AuthProvider>
         <Scripts />
       </body>

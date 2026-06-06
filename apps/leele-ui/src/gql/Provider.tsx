@@ -3,7 +3,7 @@ import { authExchange } from '@urql/exchange-auth'
 import { useAuth0 } from '@auth0/auth0-react'
 import { AppSyncSubscription } from '../gql/appsync'
 
-export function UrqlProvider({ children }: React.PropsWithChildren) {
+export function GqlProvider({ children }: React.PropsWithChildren) {
   const { getIdTokenClaims } = useAuth0()
 
   const getToken = async () => {

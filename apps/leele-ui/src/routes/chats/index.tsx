@@ -35,10 +35,9 @@ const NoteCreatedSubscription = graphql(`
 type Note = { id: string; message: string }
 
 function Page() {
-  const [result] = useQuery({
+  const [{ data, fetching, error }] = useQuery({
     query: NotesQuery,
   })
-  const { data, fetching, error } = result
 
   const [subscriptionResult] = useSubscription({ query: NoteCreatedSubscription }, (notes: Note[] = [], response) => {
     const note = response.noteCreated

@@ -1,6 +1,7 @@
 import { Client, Provider, cacheExchange, fetchExchange, subscriptionExchange } from 'urql'
 import { authExchange } from '@urql/exchange-auth'
 import { useAuth0 } from '@auth0/auth0-react'
+import { AppSyncSubscription } from '../gql/appsync'
 
 export function UrqlProvider({ children }: React.PropsWithChildren) {
   const { getIdTokenClaims } = useAuth0()
@@ -40,55 +41,11 @@ export function UrqlProvider({ children }: React.PropsWithChildren) {
       subscriptionExchange({
         forwardSubscription: ({ query, variables }) => ({
           subscribe: (sink) => {
-            let socket: WebSocket | null = null
-
-            ;(async () => {
-              const auth = {
-                Authorization: await getToken(),
-                host: new URL(import.meta.env.VITE_GRAPHQL_ENDPOINT).hostname,
-              }
-              const header = btoa(JSON.stringify(auth))
-              socket = new WebSocket(
-                `${import.meta.env.VITE_GRAPHQL_REALTIME_ENDPOINT}?header=${header}&payload=${btoa('{}')}`,
-                'graphql-ws',
-              )
-
-              socket.addEventListener('open', () => {
-                socket?.send(JSON.stringify({ type: 'connection_init' }))
-              })
-              socket.addEventListener('error', () => {
-                sink.error('WebSocket error')
-              })
-              socket.addEventListener('message', ({ data }) => {
-                const msg = JSON.parse(data)
-                if (msg.type === 'connection_ack') {
-                  socket?.send(
-                    JSON.stringify({
-                      id: '1',
-                      type: 'start',
-                      payload: {
-                        data: JSON.stringify({ query, variables: variables ?? {} }),
-                        extensions: { authorization: auth },
-                      },
-                    }),
-                  )
-                } else if (msg.type === 'data') {
-                  sink.next(msg.payload)
-                } else if (msg.type === 'error') {
-                  sink.error(msg.payload?.errors ?? msg.payload)
-                } else if (msg.type === 'complete') {
-                  sink.complete()
-                }
-              })
-            })().catch(sink.error)
-
+            const sub = new AppSyncSubscription(query, variables, getToken)
+            sub.connect(sink).catch(sink.error)
+            
             return {
-              unsubscribe: () => {
-                if (socket?.readyState === WebSocket.OPEN) {
-                  socket?.send(JSON.stringify({ id: '1', type: 'stop' }))
-                }
-                socket?.close(1000)
-              },
+              unsubscribe: () => sub.disconnect(),
             }
           },
         }),

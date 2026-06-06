@@ -7,10 +7,10 @@ export const Route = createFileRoute('/chats/')({ component: Page })
 
 function Page() {
   return (
-    <>
+    <div className='mx-auto max-w-2xl space-y-8'>
       <Chats />
       <ChatsSubscribe />
       <ChatCreate />
-    </>
+    </div>
   )
 }

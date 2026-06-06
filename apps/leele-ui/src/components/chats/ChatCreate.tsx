@@ -28,10 +28,23 @@ export function ChatCreate() {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input type='text' name='message' placeholder='message' />
-      <button type='submit' disabled={fetching}>送信</button>
-      {error && <p>Err: {error.message}</p>}
+    <form onSubmit={handleSubmit} className='space-y-2'>
+      <div className='flex items-center gap-2'>
+        <input
+          type='text'
+          name='message'
+          placeholder='メッセージを入力'
+          className='flex-1 rounded-md border border-[#bbb] bg-white/40 px-3 py-1.5 text-sm text-[#1a1a1a] placeholder:text-[#1a1a1a]/40 transition-colors focus:border-[#888] focus:outline-none'
+        />
+        <button
+          type='submit'
+          disabled={fetching}
+          className='rounded-md border border-[#bbb] px-3 py-1.5 text-sm text-[#1a1a1a] transition-colors hover:bg-[#bbb] disabled:cursor-not-allowed disabled:opacity-50'
+        >
+          送信
+        </button>
+      </div>
+      {error && <p className='text-sm text-[#1a1a1a]/60'>Err: {error.message}</p>}
     </form>
   )
 }

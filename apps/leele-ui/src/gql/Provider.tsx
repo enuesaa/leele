@@ -4,12 +4,7 @@ import { useAuth0 } from '@auth0/auth0-react'
 import { AppSyncSubscription } from '../gql/appsync'
 
 export function GqlProvider({ children }: React.PropsWithChildren) {
-  const { getIdTokenClaims } = useAuth0()
-
-  const getToken = async () => {
-    const claims = await getIdTokenClaims()
-    return claims?.__raw
-  }
+  const { getAccessTokenSilently } = useAuth0()
 
   const client = new Client({
     url: import.meta.env.VITE_GRAPHQL_ENDPOINT,
@@ -33,7 +28,7 @@ export function GqlProvider({ children }: React.PropsWithChildren) {
             return error.graphQLErrors.some((e) => e.extensions?.code === 'UNAUTHENTICATED')
           },
           async refreshAuth() {
-            token = await getToken()
+            token = await getAccessTokenSilently()
           },
         }
       }),
@@ -41,7 +36,7 @@ export function GqlProvider({ children }: React.PropsWithChildren) {
       subscriptionExchange({
         forwardSubscription: ({ query, variables }) => ({
           subscribe: (sink) => {
-            const sub = new AppSyncSubscription(query, variables, getToken)
+            const sub = new AppSyncSubscription(query, variables, getAccessTokenSilently)
             sub.connect(sink).catch(sink.error)
             
             return {

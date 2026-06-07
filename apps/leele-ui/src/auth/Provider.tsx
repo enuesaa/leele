@@ -7,6 +7,7 @@ export function AuthProvider({ children }: React.PropsWithChildren) {
       clientId={import.meta.env.VITE_AUTH0_CLIENT_ID}
       authorizationParams={{
         redirect_uri: import.meta.env.VITE_AUTH0_REDIRECT_URL,
+        audience: import.meta.env.VITE_AUTH0_AUDIENCE,
       }}
       useRefreshTokens
       cacheLocation={'localstorage'}

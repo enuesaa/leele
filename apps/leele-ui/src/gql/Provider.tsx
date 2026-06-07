@@ -4,11 +4,9 @@ import { useAuth0 } from '@auth0/auth0-react'
 import { AppSyncSubscription } from '../gql/appsync'
 
 export function GqlProvider({ children }: React.PropsWithChildren) {
-  const { getIdTokenClaims, getAccessTokenSilently } = useAuth0()
+  const { getIdTokenClaims } = useAuth0()
 
   const getToken = async () => {
-    const token = await getAccessTokenSilently()
-    console.log(token)
     const claims = await getIdTokenClaims()
     return claims?.__raw
   }

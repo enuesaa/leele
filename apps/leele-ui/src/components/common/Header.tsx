@@ -1,8 +1,13 @@
 import { Link } from '@tanstack/react-router'
-import { useAuth0 } from '@auth0/auth0-react'
+import { useAuth } from '../../auth/useAuth'
 
 export function Header() {
-  const { isAuthenticated, isLoading, loginWithRedirect } = useAuth0()
+  const { isAuthenticated, isLoading, login } = useAuth()
+
+  const handleLogin: React.MouseEventHandler<HTMLButtonElement> = (e) => {
+    e.preventDefault()
+    login()
+  }
 
   return (
     <header className='sticky top-0 z-10 border-b border-[#ccc] bg-[#ccc]/80 backdrop-blur-sm'>
@@ -13,18 +18,11 @@ export function Header() {
 
         {!isLoading &&
           (isAuthenticated ? (
-            <Link
-              to='/profile'
-              className='text-lg font-medium tracking-tight text-[#1a1a1a] transition-colors hover:opacity-70'
-            >
+            <Link to='/profile' className='text-lg font-medium tracking-tight text-[#1a1a1a] transition-colors hover:opacity-70'>
               profile
             </Link>
           ) : (
-            <button
-              type='button'
-              onClick={() => loginWithRedirect()}
-              className='rounded-md border border-[#bbb] px-3 py-1.5 text-sm text-[#1a1a1a] transition-colors hover:bg-[#bbb]'
-            >
+            <button type='button' onClick={handleLogin} className='rounded-md border border-[#bbb] px-3 py-1.5 text-sm text-[#1a1a1a] transition-colors hover:bg-[#bbb]'>
               ログイン
             </button>
           ))}

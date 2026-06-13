@@ -1,11 +1,11 @@
-import { useAuth0 } from '@auth0/auth0-react'
+import { useAuth } from '../../auth/useAuth'
 
 export function Profile() {
-  const { user, isLoading, isAuthenticated, logout } = useAuth0()
+  const { user, isLoading, isAuthenticated, logout } = useAuth()
 
   const handleLogout: React.MouseEventHandler<HTMLButtonElement> = (e) => {
     e.preventDefault()
-    logout({ logoutParams: { returnTo: window.location.origin }})
+    logout()
   }
 
   if (isLoading) {

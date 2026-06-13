@@ -2,8 +2,8 @@ import { useQuery } from 'urql'
 import { graphql } from 'gql.tada'
 
 const NotesQuery = graphql(`
-  query {
-    notes {
+  query ($channel: String!) {
+    notes(channel: $channel) {
       id
       message
     }
@@ -13,7 +13,11 @@ const NotesQuery = graphql(`
 export function Chats() {
   const [{ data, fetching, error }] = useQuery({
     query: NotesQuery,
+    variables: {
+      channel: 'general',
+    },
   })
+
   if (fetching) return <p className='py-4 text-sm text-[#1a1a1a]/60'>Loading...</p>
   if (error) return <p className='py-4 text-sm text-[#1a1a1a]/60'>err... {error.message}</p>
 

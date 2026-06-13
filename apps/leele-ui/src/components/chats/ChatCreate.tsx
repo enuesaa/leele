@@ -2,8 +2,8 @@ import { useMutation } from 'urql'
 import { graphql } from 'gql.tada'
 
 const CreateNoteMutation = graphql(`
-  mutation ($message: String!) {
-    createNote(message: $message) {
+  mutation ($channel: String!, $message: String!) {
+    createNote(channel: $channel, message: $message) {
       id
       message
     }
@@ -21,7 +21,12 @@ export function ChatCreate() {
     if (!message) {
       return
     }
-    const res = await createNote({ message })
+
+    const res = await createNote({
+      channel: 'general',
+      message,
+    })
+
     if (!res.error) {
       form.reset()
     }

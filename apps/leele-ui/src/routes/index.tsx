@@ -1,13 +1,16 @@
-import { Link, createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
+import { Chats } from '../components/chats/Chats'
+import { ChatsSubscribe } from '../components/chats/ChatsSubscribe'
+import { ChatCreate } from '../components/chats/ChatCreate'
 
 export const Route = createFileRoute('/')({ component: Page })
 
 function Page() {
   return (
     <div className='py-12'>
-      <Link to='/chats' className='text-[#1a1a1a] underline underline-offset-4 hover:opacity-70'>
-        チャット
-      </Link>
+      <Chats />
+      <ChatsSubscribe />
+      <ChatCreate />
     </div>
   )
 }

@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { useAuth0 } from '@auth0/auth0-react'
 
 export function Header() {
-  const { isAuthenticated, isLoading, loginWithRedirect, logout } = useAuth0()
+  const { isAuthenticated, isLoading, loginWithRedirect } = useAuth0()
 
   return (
     <header className='sticky top-0 z-10 border-b border-[#ccc] bg-[#ccc]/80 backdrop-blur-sm'>
@@ -10,19 +10,15 @@ export function Header() {
         <Link to='/' className='text-lg font-medium tracking-tight text-[#1a1a1a] transition-colors hover:opacity-70'>
           leele
         </Link>
-        <Link to='/profile' className='text-lg font-medium tracking-tight text-[#1a1a1a] transition-colors hover:opacity-70'>
-          profile
-        </Link>
 
         {!isLoading &&
           (isAuthenticated ? (
-            <button
-              type='button'
-              onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
-              className='rounded-md border border-[#bbb] px-3 py-1.5 text-sm text-[#1a1a1a] transition-colors hover:bg-[#bbb]'
+            <Link
+              to='/profile'
+              className='text-lg font-medium tracking-tight text-[#1a1a1a] transition-colors hover:opacity-70'
             >
-              ログアウト
-            </button>
+              profile
+            </Link>
           ) : (
             <button
               type='button'

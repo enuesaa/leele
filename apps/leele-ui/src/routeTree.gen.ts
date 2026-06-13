@@ -11,7 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProfileIndexRouteImport } from './routes/profile/index'
-import { Route as ChannelsChannelRouteImport } from './routes/channels/$channel'
+import { Route as ChannelsChannelIndexRouteImport } from './routes/channels/$channel/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -23,40 +23,40 @@ const ProfileIndexRoute = ProfileIndexRouteImport.update({
   path: '/profile/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ChannelsChannelRoute = ChannelsChannelRouteImport.update({
-  id: '/channels/$channel',
-  path: '/channels/$channel',
+const ChannelsChannelIndexRoute = ChannelsChannelIndexRouteImport.update({
+  id: '/channels/$channel/',
+  path: '/channels/$channel/',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/channels/$channel': typeof ChannelsChannelRoute
   '/profile/': typeof ProfileIndexRoute
+  '/channels/$channel/': typeof ChannelsChannelIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/channels/$channel': typeof ChannelsChannelRoute
   '/profile': typeof ProfileIndexRoute
+  '/channels/$channel': typeof ChannelsChannelIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/channels/$channel': typeof ChannelsChannelRoute
   '/profile/': typeof ProfileIndexRoute
+  '/channels/$channel/': typeof ChannelsChannelIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/channels/$channel' | '/profile/'
+  fullPaths: '/' | '/profile/' | '/channels/$channel/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/channels/$channel' | '/profile'
-  id: '__root__' | '/' | '/channels/$channel' | '/profile/'
+  to: '/' | '/profile' | '/channels/$channel'
+  id: '__root__' | '/' | '/profile/' | '/channels/$channel/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ChannelsChannelRoute: typeof ChannelsChannelRoute
   ProfileIndexRoute: typeof ProfileIndexRoute
+  ChannelsChannelIndexRoute: typeof ChannelsChannelIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -75,11 +75,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/channels/$channel': {
-      id: '/channels/$channel'
+    '/channels/$channel/': {
+      id: '/channels/$channel/'
       path: '/channels/$channel'
-      fullPath: '/channels/$channel'
-      preLoaderRoute: typeof ChannelsChannelRouteImport
+      fullPath: '/channels/$channel/'
+      preLoaderRoute: typeof ChannelsChannelIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -87,8 +87,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ChannelsChannelRoute: ChannelsChannelRoute,
   ProfileIndexRoute: ProfileIndexRoute,
+  ChannelsChannelIndexRoute: ChannelsChannelIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

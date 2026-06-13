@@ -4,6 +4,7 @@ import { AuthProvider } from '../auth/Provider'
 import { GqlProvider } from '../gql/Provider'
 import { Header } from '../components/common/Header'
 import { NotFound } from '../components/common/NotFound'
+import { ChatChannelSelector } from '../components/chats/ChatChannelSelector'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -28,7 +29,14 @@ function RootDocument({ children }: React.PropsWithChildren) {
         <AuthProvider>
           <GqlProvider>
             <Header />
-            <main className='mx-auto max-w-5xl px-6 py-10'>{children}</main>
+            <div className="flex h-screen">
+              <aside className="w-64 shrink-0 border-r">
+                <ChatChannelSelector />
+              </aside>
+              <main className="flex-1 overflow-hidden">
+                {children}
+              </main>
+            </div>
           </GqlProvider>
         </AuthProvider>
         <Scripts />

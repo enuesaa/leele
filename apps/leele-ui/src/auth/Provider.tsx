@@ -8,6 +8,7 @@ export function AuthProvider({ children }: React.PropsWithChildren) {
       authorizationParams={{
         redirect_uri: import.meta.env.VITE_AUTH0_REDIRECT_URL,
         audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+        scope: 'openid profile email offline_access',
       }}
       useRefreshTokens
       cacheLocation={'localstorage'}

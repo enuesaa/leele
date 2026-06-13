@@ -10,11 +10,14 @@ const NotesQuery = graphql(`
   }
 `)
 
-export function Chats() {
+type Props = {
+  channel: string
+}
+export function Chats({ channel }: Props) {
   const [{ data, fetching, error }] = useQuery({
     query: NotesQuery,
     variables: {
-      channel: 'general',
+      channel,
     },
   })
 

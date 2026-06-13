@@ -8,9 +8,9 @@ export const Route = createFileRoute('/')({ component: Page })
 function Page() {
   return (
     <div className='py-12'>
-      <Chats />
+      {/* <Chats />
       <ChatsSubscribe />
-      <ChatCreate />
+      <ChatCreate /> */}
     </div>
   )
 }

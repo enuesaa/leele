@@ -13,7 +13,10 @@ const NoteCreatedSubscription = graphql(`
 
 type Note = NonNullable<ResultOf<typeof NoteCreatedSubscription>['onNoteCreated']>
 
-export function ChatsSubscribe() {
+type Props = {
+  channel: string
+}
+export function ChatsSubscribe({}: Props) {
   const [notes, setNotes] = useState<Note[]>([])
   const [{ data, fetching, error }] = useSubscription({
     query: NoteCreatedSubscription,

@@ -10,7 +10,10 @@ const CreateNoteMutation = graphql(`
   }
 `)
 
-export function ChatCreate() {
+type Props = {
+  channel: string
+}
+export function ChatCreate({ channel }: Props) {
   const [{ fetching, error }, createNote] = useMutation(CreateNoteMutation)
 
   const handleSubmit: React.SubmitEventHandler<HTMLFormElement> = async (e) => {
@@ -23,7 +26,7 @@ export function ChatCreate() {
     }
 
     const res = await createNote({
-      channel: 'general',
+      channel,
       message,
     })
 

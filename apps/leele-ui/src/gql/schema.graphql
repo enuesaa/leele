@@ -5,6 +5,7 @@ type Meta {
 type Note {
 	id: ID!
 	message: String!
+	channel: String!
 }
 
 type Mutation {

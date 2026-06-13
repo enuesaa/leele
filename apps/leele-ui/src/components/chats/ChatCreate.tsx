@@ -6,6 +6,7 @@ const CreateNoteMutation = graphql(`
     createNote(channel: $channel, message: $message) {
       id
       message
+      channel
     }
   }
 `)

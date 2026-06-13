@@ -16,6 +16,7 @@ const NoteCreatedSubscription = graphql(`
     onNoteCreated {
       id
       message
+      channel
     }
   }
 `)
@@ -32,12 +33,16 @@ export function Chats({ channel }: Props) {
   })
 
   const [live, setLive] = useState<Note[]>([])
-  const [{ data: sub }] = useSubscription({ query: NoteCreatedSubscription })
+  const [{ data: sub }] = useSubscription({
+    query: NoteCreatedSubscription,
+  })
 
   useEffect(() => {
     if (sub === undefined || sub.onNoteCreated === null) return
     const note = sub.onNoteCreated
-    setLive((prev) => (prev.some((n) => n.id === note.id) ? prev : [...prev, note]))
+    if (note.channel === channel) {
+      setLive((prev) => (prev.some((n) => n.id === note.id) ? prev : [...prev, note]))
+    }
   }, [sub])
 
   const messages = useMemo(() => {

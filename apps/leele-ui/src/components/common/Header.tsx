@@ -10,6 +10,9 @@ export function Header() {
         <Link to='/' className='text-lg font-medium tracking-tight text-[#1a1a1a] transition-colors hover:opacity-70'>
           leele
         </Link>
+        <Link to='/profile' className='text-lg font-medium tracking-tight text-[#1a1a1a] transition-colors hover:opacity-70'>
+          profile
+        </Link>
 
         {!isLoading &&
           (isAuthenticated ? (

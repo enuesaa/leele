@@ -30,7 +30,7 @@ export function ChatChannelSelector() {
               <Link
                 to='/channels/$channel'
                 params={{ channel }}
-                className='block rounded-md px-2 py-1.5 text-sm text-[#1a1a1a]/80 transition-colors hover:bg-[#1a1a1a]/[0.06]'
+                className='block rounded-md px-2 py-1.5 text-sm text-[#1a1a1a]/80 transition-colors hover:bg-[#1a1a1a]/6'
                 activeProps={{
                   className: 'bg-[#1a1a1a]/10 font-medium text-[#1a1a1a]',
                 }}

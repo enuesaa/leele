@@ -31,7 +31,7 @@ function RootDocument({ children }: React.PropsWithChildren) {
             <div className='flex h-screen flex-col'>
               <Header />
               <div className='flex min-h-0 flex-1'>
-                <aside className='w-60 shrink-0 border-r border-[#bbb] bg-[#1a1a1a]/[0.03]'>
+                <aside className='w-60 shrink-0 border-r border-[#bbb] bg-[#1a1a1a]/3'>
                   <ChatChannelSelector />
                 </aside>
                 <main className='min-w-0 flex-1 overflow-hidden'>

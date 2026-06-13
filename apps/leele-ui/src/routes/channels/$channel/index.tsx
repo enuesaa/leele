@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Chats } from '../../../components/chats/Chats'
-import { ChatsSubscribe } from '../../../components/chats/ChatsSubscribe'
 import { ChatCreate } from '../../../components/chats/ChatCreate'
 
 export const Route = createFileRoute('/channels/$channel/')({
@@ -11,19 +10,16 @@ export function Page() {
   const { channel } = Route.useParams()
 
   return (
-    <div className="flex h-full flex-col">
-      <header className="border-b px-6 py-4">
-        <h1 className="text-xl font-semibold">
-          #{channel}
+    <div className='flex h-full flex-col'>
+      <header className='shrink-0 border-b border-[#bbb] px-6 py-3'>
+        <h1 className='text-base font-semibold tracking-tight text-[#1a1a1a]'>
+          # {channel}
         </h1>
       </header>
 
-      <div className="flex-1 overflow-y-auto px-6 py-4">
-        <Chats channel={channel} />
-        <ChatsSubscribe channel={channel} />
-      </div>
+      <Chats key={channel} channel={channel} />
 
-      <footer className="border-t p-4">
+      <footer className='shrink-0 border-t border-[#bbb] px-6 py-3'>
         <ChatCreate channel={channel} />
       </footer>
     </div>

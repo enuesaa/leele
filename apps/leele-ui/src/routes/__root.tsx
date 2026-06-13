@@ -25,17 +25,19 @@ function RootDocument({ children }: React.PropsWithChildren) {
       <head>
         <HeadContent />
       </head>
-      <body className='min-h-full bg-[#ccc] text-[#1a1a1a] antialiased'>
+      <body className='h-screen overflow-hidden bg-[#ccc] text-[#1a1a1a] antialiased'>
         <AuthProvider>
           <GqlProvider>
-            <Header />
-            <div className="flex h-screen">
-              <aside className="w-64 shrink-0 border-r">
-                <ChatChannelSelector />
-              </aside>
-              <main className="flex-1 overflow-hidden">
-                {children}
-              </main>
+            <div className='flex h-screen flex-col'>
+              <Header />
+              <div className='flex min-h-0 flex-1'>
+                <aside className='w-60 shrink-0 border-r border-[#bbb] bg-[#1a1a1a]/[0.03]'>
+                  <ChatChannelSelector />
+                </aside>
+                <main className='min-w-0 flex-1 overflow-hidden'>
+                  {children}
+                </main>
+              </div>
             </div>
           </GqlProvider>
         </AuthProvider>

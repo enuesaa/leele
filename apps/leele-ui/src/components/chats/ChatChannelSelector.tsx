@@ -11,35 +11,37 @@ const MetaQuery = graphql(`
 `)
 
 export function ChatChannelSelector() {
-  const [{ data, fetching, error }] = useQuery({
+  const [{ data, error }] = useQuery({
     query: MetaQuery,
   })
 
-  if (fetching) {
-    return <p>Loading...</p>
-  }
-
-  if (error) {
-    return <p>Err: {error.message}</p>
-  }
-
   return (
-    <nav>
-      <h2 className="mb-2 text-sm font-medium">Channels</h2>
+    <nav className='flex h-full flex-col gap-2 px-3 py-4'>
+      <h2 className='px-2 text-xs font-semibold uppercase tracking-wider text-[#1a1a1a]/50'>
+        Channels
+      </h2>
 
-      <ul className="space-y-1">
-        {data?.meta.channels.map((channel) => (
-          <li key={channel}>
-            <Link
-              to="/channels/$channel"
-              params={{ channel }}
-              className="block rounded px-3 py-2 hover:bg-gray-100"
-            >
-              #{channel}
-            </Link>
-          </li>
-        ))}
-      </ul>
+      {error ? (
+        <p className='px-2 text-sm text-[#1a1a1a]/50'>{error.message}</p>
+      ) : (
+        <ul className='space-y-0.5'>
+          {data?.meta.channels.map((channel) => (
+            <li key={channel}>
+              <Link
+                to='/channels/$channel'
+                params={{ channel }}
+                className='block rounded-md px-2 py-1.5 text-sm text-[#1a1a1a]/80 transition-colors hover:bg-[#1a1a1a]/[0.06]'
+                activeProps={{
+                  className: 'bg-[#1a1a1a]/10 font-medium text-[#1a1a1a]',
+                }}
+              >
+                <span className='text-[#1a1a1a]/40'># </span>
+                {channel}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </nav>
   )
 }

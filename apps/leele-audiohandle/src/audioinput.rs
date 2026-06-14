@@ -2,7 +2,7 @@ use anyhow::{anyhow, Result};
 use aws_config;
 use aws_sdk_s3;
 use base64::Engine;
-use gcp_auth::provider;
+use gcp_auth::{CustomServiceAccount, TokenProvider};
 use serde_json::Value;
 use tokio::sync::mpsc::channel;
 use tokio_stream::wrappers::ReceiverStream;
@@ -30,7 +30,8 @@ pub async fn handle_audio_input(mi: &str) -> Result<String> {
     let prefix = format!("audio/{}/", mi);
 
     // Google Cloud Speech To Text API
-    let auth = provider().await?;
+    let credjson = std::env::var("GOOGLE_CREDENTIALS_JSON")?;
+    let auth = CustomServiceAccount::from_json(credjson.as_str())?;
     let token = auth.token(&["https://www.googleapis.com/auth/cloud-platform"]).await?;
     let speechbearer = format!("Bearer {}", token.as_str());
     let grpc_channel = Channel::from_static("https://speech.googleapis.com")

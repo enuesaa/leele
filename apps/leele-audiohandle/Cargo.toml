@@ -21,6 +21,14 @@ aws-sdk-polly = "1.106.0"
 aws-smithy-http = "0.63.6"
 tokio-stream = "0.1.18"
 futures-util = "0.3.32"
-aws-sdk-transcribestreaming = "1.103.0"
+tonic = { version = "0.12", features = ["tls", "tls-native-roots"] }
+prost = "0.13"
+prost-types = "0.13"
+gcp_auth = "0.12"
 futures = "0.3.32"
 aws-smithy-types = "1.4.7"
+ring = "0.17"
+rustls = { version = "0.23", features = ["ring"] }
+
+[build-dependencies]
+tonic-build = "0.12"

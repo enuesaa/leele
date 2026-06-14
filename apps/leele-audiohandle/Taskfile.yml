@@ -3,7 +3,7 @@ version: '3'
 tasks:
   default:
     cmds:
-      - CROSS_CONTAINER_OPTS="--platform linux/amd64" cargo lambda build --compiler cross --release --arm64
+      - CROSS_CONTAINER_OPTS="--platform linux/amd64" CROSS_BUILD_OPTS="--platform linux/amd64" cargo lambda build --compiler cross --release --arm64
       - |
         cd target/lambda/leele-audiohandle
         zip ../../../dist.zip bootstrap
